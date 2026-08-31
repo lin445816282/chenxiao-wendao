@@ -4,7 +4,7 @@ const AD_UNIT_ID = ''; // TODO: 填入微信激励视频广告位 ID（留空=�
 
 // ===== 模块加载 =====
 const { rv, wv, p, enc, bytesToStr, utf8 } = require('./js/protobuf.js');
-const { STAGES, ACHIEVEMENTS, EQUIP_NAME, EQUIP_POS, POS_NAME, EQUIP_BASE, AFFIX_ATTR, POS_LIST, QUALITY_COLOR, QUALITY_NAME, PET_NAME, PET_BASE, ITEM_NAME, ITEM_ICON, LOGIN, AGREEMENT_USER, AGREEMENT_PRIVACY, equipColor, equipQualityName, calcPetAttrs } = require('./js/config.js');
+const { STAGES, ACHIEVEMENTS, EQUIP_NAME, EQUIP_POS, POS_NAME, EQUIP_BASE, AFFIX_ATTR, POS_LIST, QUALITY_COLOR, QUALITY_NAME, PET_NAME, PET_BASE, ITEM_NAME, ITEM_ICON, LOGIN, AGREEMENT_USER, AGREEMENT_PRIVACY, FASHIONS, equipColor, equipQualityName, calcPetAttrs } = require('./js/config.js');
 const audio = require('./js/audio.js');
 const { initAudio, startBGM, sndClick, sndHit, sndCrit, sndVictory, sndDodge, sndOpen, sndClose, sndDrop, sndUpgrade, sndError } = audio;
 
@@ -21,7 +21,7 @@ let GROUND = Math.round(SH * 0.57);
 
 // ===== 状态 =====
 let scene = 'home', connected = false, hasRole = false;
-let nickname = '', level = 0, exp = 0, copper = 0, power = 0, welcomed = false, prevLevel = 0;
+let nickname = '', level = 0, exp = 0, copper = 0, power = 0, welcomed = false, prevLevel = 0, heroAngle = 0, draggingHero = false, dragStartX = 0;
 let rewardedAd = null, adBizId = '';
 let log = [], buttons = [], battle = null, modal = null;
 let equipData = [], petData = [], mailData = [], bagItems = [], selIdx = 0, selEquip = null, equipPopup = null;
@@ -35,6 +35,9 @@ let privacyAgreed = false;
 try { privacyAgreed = !!wx.getStorageSync(PRIVACY_KEY); } catch (e) {}
 // 登录页状态
 let loginAgreed = false, curServer = 0;
+// 时装状态
+let curFashion = 0;
+try { const f = wx.getStorageSync('cxwd_fashion'); if (typeof f === 'number' && f >= 0) curFashion = f; } catch (e) {}
 function achDone(a) {
   switch (a.id) {
     case 1: return stageProgress.cleared.length >= 1;
@@ -75,7 +78,7 @@ function send(id, body) {
 const IMG = {};
 function load(k, p) { const im = wx.createImage(); im.src = p; im.onload = () => IMG[k] = im; }
 load('bg', 'images/bg_home.png'); load('bgBattle', 'images/bg_battle.png');
-load('hero', 'images/hero_male.png'); load('monster', 'images/monster_basic.png'); load('monsterElite', 'images/monster_elite.png'); load('boss', 'images/boss.png'); load('bossBlood', 'images/boss_blood.png'); load('pet', 'images/pet_linghu.png'); load('petXuanwu', 'images/pet_xuanwu.png'); load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png'); load('iconMaterial', 'images/icon_material.png');
+load('hero', 'images/hero_male.png'); load('heroFemale', 'images/hero_female.png'); load('heroBlue', 'images/hero_blue.png'); load('heroGold', 'images/hero_gold.png'); load('heroRed', 'images/hero_red.png'); load('heroFemaleBlue', 'images/hero_female_blue.png'); load('monster', 'images/monster_basic.png'); load('monsterElite', 'images/monster_elite.png'); load('boss', 'images/boss.png'); load('bossBlood', 'images/boss_blood.png'); load('pet', 'images/pet_linghu.png'); load('petXuanwu', 'images/pet_xuanwu.png'); load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png'); load('iconMaterial', 'images/icon_material.png');
 
 // 绘制工具已抽到 js/draw.js（见下方 require）
 function addLog(s) { log.unshift(s); if (log.length > 3) log.pop(); }
@@ -166,7 +169,7 @@ async function doLogin() {
   const [, body] = await send(1000, []);
   let hr = false, role = null; for (const f of p(body)) { if (f.n === 3) hr = (f.v === 1n); if (f.n === 4) role = f.d; }
   hasRole = hr;
-  if (role) { for (const f of p(role)) { if (f.n === 2) nickname = bytesToStr(f.d); if (f.n === 4) level = Number(f.v); if (f.n === 5) exp = Number(f.v); if (f.n === 6) copper = Number(f.v); if (f.n === 7) power = Number(f.v); } if (prevLevel && level > prevLevel) { sndUpgrade(); levelUpFlash = 1; addLog('等级提升！Lv.' + prevLevel + ' → Lv.' + level); } prevLevel = level; if (!welcomed) { welcomed = true; addLog('欢迎回来，' + nickname); } if (!tutorialDone && !guide) guide = { phase: 'intro' }; }
+  if (role) { for (const f of p(role)) { if (f.n === 2) nickname = bytesToStr(f.d); if (f.n === 4) level = Number(f.v); if (f.n === 5) exp = Number(f.v); if (f.n === 6) copper = Number(f.v); if (f.n === 7) power = Number(f.v); } if (prevLevel && level > prevLevel) { sndUpgrade(); levelUpFlash = 1; addLog('等级提升！Lv.' + prevLevel + ' → Lv.' + level); } prevLevel = level; if (!welcomed) { welcomed = true; addLog('欢迎回来，' + nickname); } fetchEquip(); if (!tutorialDone && !guide) guide = { phase: 'intro' }; }
   else if (!hr) { /* 自动建号 */ const nb = utf8('尘霄散修'); await send(1002, [0x0A, nb.length].concat(nb)); await doLogin(); }
 }
 async function doClaim() { const [, body] = await send(2006, []); let r = []; for (const f of p(body)) if (f.n === 2) { const s = p(f.d); r.push((s[0].v === 2n ? '修为' : '铜钱') + s[1].v); } addLog('在线挂机收益：' + (r.join(' ') || '无')); await doLogin(); }
@@ -295,7 +298,17 @@ function renderHome() {
   renderAmbient('#ffe9a0');
   text('尘霄问道', SW / 2, 46, 26, '#fff', 'center', true);
   text('● ' + (connected ? '已连接' : '未连接'), SW / 2, 70, 12, connected ? '#4ade80' : '#f87171');
-  draw('hero', SW / 2 - 80, 92, 160, 284);
+  ctx.save();
+  ctx.translate(SW / 2, 92 + 142);
+  ctx.rotate(heroAngle * 0.35);
+  if (heroAngle < 0) ctx.scale(-1, 1);
+  draw(FASHIONS[curFashion].img, -80, -142, 160, 284);
+  const wornWpn = equipData.find(q => q.pos === 1);
+  const wornArm = equipData.find(q => q.pos === 3);
+  if (wornWpn) draw('iconWeapon', 18, -38, 34, 34);
+  if (wornArm) draw('iconArmor', -62, -14, 44, 44);
+  ctx.restore();
+  text('← 左右拖动旋转 →', SW / 2, 402, 10, '#9ab', 'center');
   ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(SW / 2, 388, 62, 10, 0, 0, Math.PI * 2); ctx.fill();
   text((hasRole ? nickname : '未建号') + '  ·  Lv.' + level, SW / 2, 414, 18, '#ffd76a', 'center', true);
   text('⚔ 战力 ' + power + '　ⓘ', SW / 2, 438, 14, '#7cc4ff', 'center', true);
@@ -350,6 +363,7 @@ function renderEquip() {
   renderAmbient('#ffe9a0');
   text('装备', SW / 2, 46, 22, '#ffd76a', 'center', true);
   btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
+  btn({ x: SW - 87, y: 16, w: 72, h: 36, label: '时装' });
   // 已穿戴 8 槽位（2行×4列）
   const cw = 82, ch = 68, gx = 6, gy = 6, ox = 15, oy = 60;
   const ft = Date.now() * 0.003;
@@ -610,6 +624,26 @@ function renderBag() {
     btn({ x: 15, y: 560, w: SW - 30, h: 48, label: '使用 1 个' });
   }
 }
+function renderFashion() {
+  coverDraw('bg', 0, 0, SW, SH);
+  ctx.fillStyle = 'rgba(10,22,40,0.6)'; ctx.fillRect(0, 0, SW, SH);
+  renderAmbient('#ffe9a0');
+  text('时装', SW / 2, 46, 22, '#ffd76a', 'center', true);
+  btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
+  const cf = FASHIONS[curFashion];
+  draw(cf.img, SW / 2 - 70, 60, 140, 248);
+  text(cf.name + '（穿戴中）', SW / 2, 320, 14, '#e8c96a', 'center', true);
+  const cw = 100, ch = 112, g = 10, ox = 22, oy = 344;
+  FASHIONS.forEach((f, i) => {
+    const px = ox + (i % 3) * (cw + g), py = oy + Math.floor(i / 3) * (ch + g);
+    const sel = i === curFashion;
+    panel(px, py, cw, ch, sel ? 'rgba(37,99,235,0.55)' : 'rgba(15,25,45,0.85)', 10);
+    if (sel) { ctx.strokeStyle = 'rgba(255,213,90,0.9)'; ctx.lineWidth = 2; ctx.strokeRect(px, py, cw, ch); }
+    draw(f.img, px + cw / 2 - 30, py + 10, 60, 72);
+    text(f.name, px + cw / 2, py + 92, 11, sel ? '#f7ecc8' : '#e0e0e0', 'center', true);
+    text(sel ? '已穿戴' : '点击穿', px + cw / 2, py + 105, 9, sel ? '#4ade80' : '#9ab', 'center');
+  });
+}
 // renderSettings / renderAchievements 已抽到 js/pages.js
 function renderLogin() {
   coverDraw('bg', 0, 0, SW, SH);
@@ -638,7 +672,7 @@ function renderLogin() {
   text('《' + LOGIN.agreementPrivacy + '》', 215, ly, 13, '#7cc4ff', 'left');
   text('v1.0.0', SW / 2, SH - 30, 11, '#9ab', 'center');
 }
-function render() { if (scene === 'battle') renderBattle(); else if (scene === 'stages') renderStages(); else if (scene === 'equip') { renderEquip(); renderEquipDetail(); } else if (scene === 'pet') renderPet(); else if (scene === 'bag') renderBag(); else if (scene === 'settings') renderSettings(); else if (scene === 'achievements') renderAchievements(); else if (scene === 'privacy') renderPrivacy(); else if (scene === 'login') renderLogin(); else renderHome(); if (fade < 1) { ctx.fillStyle = 'rgba(0,0,0,' + (1 - fade) + ')'; ctx.fillRect(0, 0, SW, SH); } renderModal(); renderGuide(); }
+function render() { if (scene === 'battle') renderBattle(); else if (scene === 'stages') renderStages(); else if (scene === 'equip') { renderEquip(); renderEquipDetail(); } else if (scene === 'pet') renderPet(); else if (scene === 'bag') renderBag(); else if (scene === 'fashion') renderFashion(); else if (scene === 'settings') renderSettings(); else if (scene === 'achievements') renderAchievements(); else if (scene === 'privacy') renderPrivacy(); else if (scene === 'login') renderLogin(); else renderHome(); if (fade < 1) { ctx.fillStyle = 'rgba(0,0,0,' + (1 - fade) + ')'; ctx.fillRect(0, 0, SW, SH); } renderModal(); renderGuide(); }
 
 function update(dt) {
   for (const p of ambient) { p.y -= p.sp * dt; p.x += Math.sin((p.y + p.ph) * 0.02) * 0.4; if (p.y < -10) { p.y = SH + 10; p.x = Math.random() * SW; } }
@@ -788,6 +822,7 @@ wx.onTouchStart((e) => {
     if (y >= SH - 92 && y <= SH - 52) { sndClick(); showModal('提示', ['需同意协议后才能进入游戏'], [{ label: '知道了', fn: closeModal }]); return; }
     return;
   }
+  if (scene === 'home' && !modal && !guide && x >= SW / 2 - 95 && x <= SW / 2 + 95 && y >= 80 && y <= 405) { draggingHero = true; dragStartX = x; return; }
   if (guide && scene === 'home' && !modal) {
     if (guide.phase === 'intro') {
       if (x >= SW / 2 - 62 && x <= SW / 2 + 62 && y >= 396 && y <= 440) { sndClick(); guide = { phase: 'battle' }; }
@@ -835,6 +870,7 @@ wx.onTouchStart((e) => {
       return;
     }
     if (x >= 15 && x <= 87 && y >= 16 && y <= 52) { sndClick(); scene = 'home'; fade = 0; return; }
+    if (x >= SW - 87 && x <= SW - 15 && y >= 16 && y <= 52) { sndClick(); scene = 'fashion'; fade = 0; return; }
     // 已穿戴槽位点击 → 选中展示属性
     const cw = 82, ch = 68, gx = 6, gy = 6, ox = 15, oy = 60;
     for (let i = 0; i < 8; i++) {
@@ -891,6 +927,15 @@ wx.onTouchStart((e) => {
     if (bagItems[selIdx] && y >= 560 && y <= 608 && x >= 15 && x <= SW - 15) { sndClick(); useItem(); return; }
     return;
   }
+  if (scene === 'fashion') {
+    if (x >= 15 && x <= 87 && y >= 16 && y <= 52) { sndClick(); scene = 'home'; fade = 0; return; }
+    const cw = 100, ch = 112, g = 10, ox = 22, oy = 344;
+    FASHIONS.forEach((f, i) => {
+      const px = ox + (i % 3) * (cw + g), py = oy + Math.floor(i / 3) * (ch + g);
+      if (x >= px && x <= px + cw && y >= py && y <= py + ch) { sndClick(); curFashion = i; try { wx.setStorageSync('cxwd_fashion', i); } catch (e2) {} sndUpgrade(); return; }
+    });
+    return;
+  }
   if (scene === 'settings') {
     if (x >= 15 && x <= 87 && y >= 16 && y <= 52) { sndClick(); scene = privacyAgreed ? 'home' : 'login'; fade = 0; return; }
     if (x >= 15 && x <= SW - 15 && y >= 70 && y <= 126) { audio.setSoundOn(!audio.getSoundOn()); sndClick(); return; }
@@ -915,6 +960,14 @@ wx.onTouchStart((e) => {
   if (scene === 'home' && x >= 28 && x <= 150 && y >= 550 && y <= 576) { sndClick(); doAd(); return; }
   for (const b of buttons) { if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { sndClick(); if (mainActions[b.label]) mainActions[b.label](); return; } }
 });
+
+wx.onTouchMove((e) => {
+  if (draggingHero && e.touches.length) {
+    const dx = e.touches[0].clientX - dragStartX;
+    heroAngle = Math.max(-1, Math.min(1, dx / 60));
+  }
+});
+wx.onTouchEnd(() => { draggingHero = false; });
 
 // ===== 主循环 =====
 let lastT = Date.now();

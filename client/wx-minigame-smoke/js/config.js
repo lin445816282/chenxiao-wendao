@@ -39,6 +39,15 @@ const LOGIN = {
   agreementUser: '用户协议',
   agreementPrivacy: '隐私政策',
 };
+// 时装（外观，改变角色立绘，不影响属性）
+const FASHIONS = [
+  { id: 1, name: '白衣仙袍', img: 'hero' },
+  { id: 2, name: '青衫剑客', img: 'heroBlue' },
+  { id: 3, name: '金甲战神', img: 'heroGold' },
+  { id: 4, name: '赤袍大侠', img: 'heroRed' },
+  { id: 5, name: '红衣女侠', img: 'heroFemale' },
+  { id: 6, name: '蓝衫女侠', img: 'heroFemaleBlue' },
+];
 // 协议全文（弹框展示）
 const AGREEMENT_USER = [
   '欢迎使用《尘霄问道》！',
@@ -67,6 +76,6 @@ function calcPetAttrs(q) {
 module.exports = {
   STAGES, ACHIEVEMENTS, EQUIP_NAME, EQUIP_POS, POS_NAME, EQUIP_BASE, AFFIX_ATTR, POS_LIST,
   EQUIP_QUALITY, QUALITY_COLOR, QUALITY_NAME, PET_NAME, PET_BASE, ITEM_NAME, ITEM_ICON,
-  LOGIN, AGREEMENT_USER, AGREEMENT_PRIVACY,
+  LOGIN, AGREEMENT_USER, AGREEMENT_PRIVACY, FASHIONS,
   equipColor, equipQualityName, calcPetAttrs,
 };

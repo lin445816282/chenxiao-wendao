@@ -37,6 +37,19 @@ const PET_NAME = { 3001: '雪灵狐', 3002: '玄龟幼兽' };
 const PET_BASE = { 3001: { atk: 80, def: 0, hp: 0 }, 3002: { atk: 0, def: 0, hp: 120 } };
 const ITEM_NAME = { 5001: '灵石' };
 const ITEM_ICON = { 5001: 'iconMaterial' };
+// 境界称号：按等级划分，纯展示（仙侠风味）
+function realmName(lv) {
+  if (lv >= 90) return '真仙境';
+  if (lv >= 80) return '渡劫期';
+  if (lv >= 70) return '大乘期';
+  if (lv >= 60) return '合体期';
+  if (lv >= 50) return '炼虚期';
+  if (lv >= 40) return '化神期';
+  if (lv >= 30) return '元婴期';
+  if (lv >= 20) return '金丹期';
+  if (lv >= 10) return '筑基期';
+  return '炼气期';
+}
 // 登录页配置（文案/服务器/公告/客服，后续更换只改这里）
 const LOGIN = {
   title: '尘霄问道',
@@ -502,7 +515,7 @@ async function showAttrs() {
   await fetchEquip();
   const a = calcAttrs();
   const worn = equipData.filter(q => q.pos).map(q => POS_NAME[EQUIP_POS[q.id]] + ':' + (EQUIP_NAME[q.id] || '装备'));
-  showModal('属性', ['战力 ' + power, '攻击 ' + a.atk, '防御 ' + a.def, '生命 ' + a.hp, '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
+  showModal('属性', ['境界 ' + realmName(level) + ' · 战力 ' + power, '攻击 ' + a.atk, '防御 ' + a.def, '生命 ' + a.hp, '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
 }
 async function fetchPet() {
   const [, body] = await send(5000, []);
@@ -566,7 +579,7 @@ function renderHome() {
   ctx.restore();
   text('← 左右拖动旋转 →', SW / 2, 402, 10, '#9ab', 'center');
   ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(SW / 2, 388, 62, 10, 0, 0, Math.PI * 2); ctx.fill();
-  text((hasRole ? nickname : '未建号') + '  ·  Lv.' + level, SW / 2, 414, 18, '#ffd76a', 'center', true);
+  text((hasRole ? nickname : '未建号') + '  ·  ' + realmName(level) + '  Lv.' + level, SW / 2, 414, 18, '#ffd76a', 'center', true);
   text('⚔ 战力 ' + power + '　ⓘ', SW / 2, 438, 14, '#7cc4ff', 'center', true);
   panel(SW / 2 - 92, 448, 184, 48, 'rgba(0,0,0,0.45)', 12);
   text('修为 ' + exp + '   铜钱 ' + copper, SW / 2, 466, 12, '#ffe9b0');

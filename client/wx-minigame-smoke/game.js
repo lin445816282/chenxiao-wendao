@@ -428,6 +428,25 @@ async function doBattle(stageId, stageType) {
   combo = 0; fade = 0; scene = 'battle'; battle = { t: 0, pushed: 0, hits: [], done: false, hasPet, res: { win, star, actions, rewards, equips, pets }, stage };
 }
 async function doStages() { scene = 'stages'; fade = 0; }
+async function doSweep(stageId, stageType) {
+  const [, resp] = await send(3002, [0x08].concat(wv(stageType), [0x10]).concat(wv(stageId), [0x18].concat(wv(1))));
+  let code = -1; const rewards = [], equips = [], pets = [];
+  for (const f of p(resp)) {
+    if (f.n === 1) { for (const x of p(f.d)) if (x.n === 1) code = Number(x.v); }
+    else if (f.n === 2) { let id = 0, c = 0; for (const x of p(f.d)) { if (x.n === 1) id = x.v; if (x.n === 2) c = Number(x.v); } rewards.push({ id: Number(id), c }); }
+    else if (f.n === 3) { let id = 0; for (const x of p(f.d)) if (x.n === 2) id = x.v; equips.push(Number(id)); }
+    else if (f.n === 4) { let id = 0; for (const x of p(f.d)) if (x.n === 2) id = x.v; pets.push(Number(id)); }
+  }
+  if (code > 0) { addLog('需先通关该关卡才能扫荡'); return; }
+  const lines = [];
+  rewards.forEach(r => lines.push((r.id === 1 ? '铜钱' : r.id === 2 ? '修为' : (ITEM_NAME[r.id] || '材料')) + ' × ' + r.c));
+  equips.forEach(id => lines.push('⚔ ' + (EQUIP_NAME[id] || '装备#' + id)));
+  pets.forEach(id => lines.push('🐾 ' + (PET_NAME[id] || '灵宠#' + id)));
+  if (!lines.length) lines.push('本次无掉落');
+  sndDrop();
+  showModal('扫荡结果', lines, [{ label: '确定', fn: closeModal }]);
+  await doLogin();
+}
 async function fetchEquip() {
   const [, body] = await send(4000, []);
   equipData = [];
@@ -583,7 +602,11 @@ function renderStages() {
     text(bad, bx + bw2 / 2, by + 14, 11, '#fff', 'center', true);
     text('推荐战力 ' + s.power, cx + 76, cy + 84, 12, '#9ab', 'left');
     if (!unlocked) text('🔒 未解锁', cx + cw - 16, cy + ch / 2 + 6, 14, '#777', 'right');
-    else if (cleared) text('★'.repeat(star) + '☆'.repeat(3 - star), cx + cw - 16, cy + ch / 2 + 6, 16, '#ffc53d', 'right');
+    else if (cleared) {
+      text('★'.repeat(star) + '☆'.repeat(3 - star), cx + cw - 16, cy + 28, 15, '#ffc53d', 'right');
+      btn({ x: cx + cw - 78, y: cy + 44, w: 62, h: 30, label: '扫荡' });
+      text('已通关', cx + cw - 16, cy + 96, 10, '#4ade80', 'right');
+    }
     else text('挑战 →', cx + cw - 16, cy + ch / 2 + 6, 14, '#ffd76a', 'right', true);
   });
   btn({ x: 15, y: SH - 60, w: 90, h: 44, label: '返回' });
@@ -1081,6 +1104,8 @@ wx.onTouchStart((e) => {
     STAGES.forEach((s, i) => {
       const cy = 108 + i * 122, ch = 108;
       if (x >= 20 && x <= SW - 20 && y >= cy && y <= cy + ch) {
+        const cleared = stageProgress.cleared.indexOf(s.id) >= 0;
+        if (cleared && x >= SW - 98 && x <= SW - 36 && y >= cy + 44 && y <= cy + 74) { sndClick(); doSweep(s.id, s.type); return; }
         if (!stageUnlocked(s)) { addLog('需先通关「' + STAGES[i - 1].name + '」'); sndClick(); return; }
         sndClick(); doBattle(s.id, s.type);
       }

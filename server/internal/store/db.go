@@ -86,6 +86,14 @@ func Migrate(db *sql.DB) error {
 			is_claimed INTEGER NOT NULL DEFAULT 0,
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 		)`,
+		`CREATE TABLE IF NOT EXISTS t_stage_clear (
+			player_id INTEGER NOT NULL DEFAULT 0,
+			stage_id INTEGER NOT NULL DEFAULT 0,
+			clear_times INTEGER NOT NULL DEFAULT 0,
+			max_star INTEGER NOT NULL DEFAULT 0,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY (player_id, stage_id)
+		)`,
 	}
 	for _, s := range stmts {
 		if _, err := db.Exec(s); err != nil {

@@ -63,21 +63,16 @@ func (s *Service) OnStartStage(ctx context.Context, conn *net.Connection, body [
 			// 基础奖励：修为 + 铜钱（按关卡配置落库并下发）
 			store.AddResources(s.DB, playerID, stage.ExpReward, stage.CopperReward)
 			store.AddPetExp(s.DB, playerID, stage.ExpReward)
+			store.RecordStageClear(s.DB, playerID, stage.ID, calcStar(res))
 			resp.Rewards = append(resp.Rewards,
 				&common.RewardItem{ItemId: 2, Count: stage.ExpReward},
 				&common.RewardItem{ItemId: 1, Count: stage.CopperReward},
 			)
 		}
-		if table, ok := s.Config.GetDropTable(stage.DropTableID); ok {
-			rolls := int(stage.Type)
-			if rolls < 1 {
-				rolls = 1
-			}
-			rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-			for _, d := range drop.RollN(table, rolls, rng) {
-				s.applyDrop(resp, d, playerID)
-			}
-		}
+		drops := s.rollStageDrops(stage.DropTableID, int(stage.Type), playerID)
+		resp.Rewards = append(resp.Rewards, drops.Rewards...)
+		resp.Equips = append(resp.Equips, drops.Equips...)
+		resp.Pets = append(resp.Pets, drops.Pets...)
 	}
 	return respond(msgid.S2CStartStage, resp)
 }
@@ -85,9 +80,54 @@ func (s *Service) OnStartStage(ctx context.Context, conn *net.Connection, body [
 // OnSweepStage 扫荡（已通关关卡快速结算，无需回放）。
 func (s *Service) OnSweepStage(ctx context.Context, conn *net.Connection, body []byte) (uint32, []byte) {
 	req := &dungeon.C2SSweepStage{}
-	_ = proto.Unmarshal(body, req)
-	// TODO(M3): 校验已通关与扫荡次数 -> 批量掉落结算 -> 返回 rewards。
+	if err := proto.Unmarshal(body, req); err != nil {
+		return respond(msgid.S2CSweepStage, &dungeon.S2CSweepStage{
+			Result: &common.Result{Code: common.ErrorCode_ERR_INVALID_PARAM},
+		})
+	}
+	stage, ok := s.Config.GetStage(req.StageId)
+	if !ok {
+		return respond(msgid.S2CSweepStage, &dungeon.S2CSweepStage{
+			Result: &common.Result{Code: common.ErrorCode_ERR_STAGE_LOCKED},
+		})
+	}
+	p, err := store.GetPlayerByAccount(s.DB, mockAccountID)
+	if err != nil {
+		return respond(msgid.S2CSweepStage, &dungeon.S2CSweepStage{
+			Result: &common.Result{Code: common.ErrorCode_ERR_NOT_LOGIN},
+		})
+	}
+	// 扫荡仅限已通关关卡（服务端权威校验）
+	if !store.HasClearedStage(s.DB, p.ID, stage.ID) {
+		return respond(msgid.S2CSweepStage, &dungeon.S2CSweepStage{
+			Result: &common.Result{Code: common.ErrorCode_ERR_STAGE_LOCKED},
+		})
+	}
+	// 扫荡次数：单次 1-10，默认 1
+	times := req.Times
+	if times <= 0 {
+		times = 1
+	}
+	if times > 10 {
+		times = 10
+	}
 	resp := &dungeon.S2CSweepStage{Result: okResult()}
+	store.AddResources(s.DB, p.ID, stage.ExpReward*int64(times), stage.CopperReward*int64(times))
+	store.AddPetExp(s.DB, p.ID, stage.ExpReward*int64(times))
+	resp.Rewards = append(resp.Rewards,
+		&common.RewardItem{ItemId: 2, Count: stage.ExpReward * int64(times)},
+		&common.RewardItem{ItemId: 1, Count: stage.CopperReward * int64(times)},
+	)
+	rolls := int(stage.Type)
+	if rolls < 1 {
+		rolls = 1
+	}
+	for i := int32(0); i < times; i++ {
+		d := s.rollStageDrops(stage.DropTableID, rolls, p.ID)
+		resp.Rewards = append(resp.Rewards, d.Rewards...)
+		resp.Equips = append(resp.Equips, d.Equips...)
+		resp.Pets = append(resp.Pets, d.Pets...)
+	}
 	return respond(msgid.S2CSweepStage, resp)
 }
 
@@ -128,8 +168,32 @@ func calcStar(res combat.Result) int32 {
 	return 1
 }
 
-// applyDrop 把掉落按类型归入响应：装备/灵宠落库，材料进 rewards。
-func (s *Service) applyDrop(resp *dungeon.S2CStartStage, d drop.Reward, playerID int64) {
+// stageDrop 掉落结算结果（战斗与扫荡共用）。
+type stageDrop struct {
+	Rewards []*common.RewardItem
+	Equips  []*dungeon.EquipDrop
+	Pets    []*dungeon.PetDrop
+}
+
+// rollStageDrops 按掉落表权重随机 rolls 次并落库，返回三类掉落。
+func (s *Service) rollStageDrops(tableID int32, rolls int, playerID int64) stageDrop {
+	var out stageDrop
+	if rolls < 1 {
+		rolls = 1
+	}
+	table, ok := s.Config.GetDropTable(tableID)
+	if !ok {
+		return out
+	}
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for _, d := range drop.RollN(table, rolls, rng) {
+		s.applyDropTo(&out, d, playerID)
+	}
+	return out
+}
+
+// applyDropTo 把掉落按类型归入结算：装备/灵宠落库，材料进 rewards。
+func (s *Service) applyDropTo(out *stageDrop, d drop.Reward, playerID int64) {
 	if eq, ok := s.Config.GetEquip(d.ItemID); ok {
 		affixes := s.rollAffixes(eq.AffixPool)
 		affixJSON, _ := json.Marshal(affixes)
@@ -139,7 +203,7 @@ func (s *Service) applyDrop(resp *dungeon.S2CStartStage, d drop.Reward, playerID
 				uid = id
 			}
 		}
-		resp.Equips = append(resp.Equips, &dungeon.EquipDrop{EquipUid: uid, EquipId: d.ItemID, Pos: eq.Pos, Affixes: affixes})
+		out.Equips = append(out.Equips, &dungeon.EquipDrop{EquipUid: uid, EquipId: d.ItemID, Pos: eq.Pos, Affixes: affixes})
 		return
 	}
 	if _, ok := s.Config.GetPet(d.ItemID); ok {
@@ -149,7 +213,7 @@ func (s *Service) applyDrop(resp *dungeon.S2CStartStage, d drop.Reward, playerID
 				uid = id
 			}
 		}
-		resp.Pets = append(resp.Pets, &dungeon.PetDrop{PetUid: uid, PetId: d.ItemID})
+		out.Pets = append(out.Pets, &dungeon.PetDrop{PetUid: uid, PetId: d.ItemID})
 		return
 	}
 	// 材料：落背包 + 返回给客户端
@@ -158,7 +222,7 @@ func (s *Service) applyDrop(resp *dungeon.S2CStartStage, d drop.Reward, playerID
 			log.Printf("[drop] 背包落库失败: %v", err)
 		}
 	}
-	resp.Rewards = append(resp.Rewards, &common.RewardItem{ItemId: d.ItemID, Count: d.Count})
+	out.Rewards = append(out.Rewards, &common.RewardItem{ItemId: d.ItemID, Count: d.Count})
 }
 
 // rollAffixes 从装备词条池随机生成词条（简化：随机选 1 个词条 + 随机数值）。

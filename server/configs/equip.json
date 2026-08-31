@@ -38,6 +38,120 @@
     "unlock_level": 1
   },
   {
+    "id": 2201,
+    "name": "青纹冠",
+    "pos": 2,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 83
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 1
+  },
+  {
+    "id": 2401,
+    "name": "青云护腿",
+    "pos": 4,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 20
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 1
+  },
+  {
+    "id": 2501,
+    "name": "青风灵靴",
+    "pos": 5,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 14
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 1
+  },
+  {
+    "id": 2601,
+    "name": "青曜灵坠",
+    "pos": 6,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 50
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 1
+  },
+  {
+    "id": 2701,
+    "name": "青玄法戒",
+    "pos": 7,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 40
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 1
+  },
+  {
+    "id": 2801,
+    "name": "青灵符",
+    "pos": 8,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 68
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 1
+  },
+  {
     "id": 2003,
     "name": "灵木杖",
     "pos": 1,
@@ -65,6 +179,120 @@
       {
         "attr_id": 3,
         "value": 300
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2202,
+    "name": "灵纹冠",
+    "pos": 2,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 165
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2402,
+    "name": "灵云护腿",
+    "pos": 4,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 35
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2502,
+    "name": "灵风灵靴",
+    "pos": 5,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 25
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2602,
+    "name": "灵曜灵坠",
+    "pos": 6,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 100
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2702,
+    "name": "灵玄法戒",
+    "pos": 7,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 80
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2802,
+    "name": "灵灵符",
+    "pos": 8,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 135
       }
     ],
     "affix_pool": [
@@ -114,6 +342,120 @@
     "unlock_level": 21
   },
   {
+    "id": 2203,
+    "name": "星纹冠",
+    "pos": 2,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 264
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
+    "id": 2403,
+    "name": "星云护腿",
+    "pos": 4,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 55
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
+    "id": 2503,
+    "name": "星风灵靴",
+    "pos": 5,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 39
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
+    "id": 2603,
+    "name": "星曜灵坠",
+    "pos": 6,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 160
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
+    "id": 2703,
+    "name": "星玄法戒",
+    "pos": 7,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 128
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
+    "id": 2803,
+    "name": "星灵符",
+    "pos": 8,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 216
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
     "id": 2007,
     "name": "寒霜剑",
     "pos": 1,
@@ -141,6 +483,120 @@
       {
         "attr_id": 3,
         "value": 750
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2204,
+    "name": "寒纹冠",
+    "pos": 2,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 413
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2404,
+    "name": "寒云护腿",
+    "pos": 4,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 85
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2504,
+    "name": "寒风灵靴",
+    "pos": 5,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 59
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2604,
+    "name": "寒曜灵坠",
+    "pos": 6,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 250
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2704,
+    "name": "寒玄法戒",
+    "pos": 7,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 200
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2804,
+    "name": "寒灵符",
+    "pos": 8,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 338
       }
     ],
     "affix_pool": [
@@ -190,6 +646,120 @@
     "unlock_level": 41
   },
   {
+    "id": 2205,
+    "name": "雷纹冠",
+    "pos": 2,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 644
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
+    "id": 2405,
+    "name": "雷云护腿",
+    "pos": 4,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 130
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
+    "id": 2505,
+    "name": "雷风灵靴",
+    "pos": 5,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 91
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
+    "id": 2605,
+    "name": "雷曜灵坠",
+    "pos": 6,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 390
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
+    "id": 2705,
+    "name": "雷玄法戒",
+    "pos": 7,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 312
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
+    "id": 2805,
+    "name": "雷灵符",
+    "pos": 8,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 527
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
     "id": 2011,
     "name": "妖皇戟",
     "pos": 1,
@@ -217,6 +787,120 @@
       {
         "attr_id": 3,
         "value": 1800
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2206,
+    "name": "妖纹冠",
+    "pos": 2,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 990
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2406,
+    "name": "妖云护腿",
+    "pos": 4,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 190
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2506,
+    "name": "妖风灵靴",
+    "pos": 5,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 133
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2606,
+    "name": "妖曜灵坠",
+    "pos": 6,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 600
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2706,
+    "name": "妖玄法戒",
+    "pos": 7,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 480
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2806,
+    "name": "妖灵符",
+    "pos": 8,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 810
       }
     ],
     "affix_pool": [
@@ -266,6 +950,120 @@
     "unlock_level": 61
   },
   {
+    "id": 2207,
+    "name": "幽纹冠",
+    "pos": 2,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 1485
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
+    "id": 2407,
+    "name": "幽云护腿",
+    "pos": 4,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 280
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
+    "id": 2507,
+    "name": "幽风灵靴",
+    "pos": 5,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 196
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
+    "id": 2607,
+    "name": "幽曜灵坠",
+    "pos": 6,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 900
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
+    "id": 2707,
+    "name": "幽玄法戒",
+    "pos": 7,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 720
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
+    "id": 2807,
+    "name": "幽灵符",
+    "pos": 8,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 1215
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
     "id": 2015,
     "name": "焚天剑",
     "pos": 1,
@@ -293,6 +1091,120 @@
       {
         "attr_id": 3,
         "value": 3900
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2208,
+    "name": "天纹冠",
+    "pos": 2,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 2145
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2408,
+    "name": "天云护腿",
+    "pos": 4,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 400
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2508,
+    "name": "天风灵靴",
+    "pos": 5,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 280
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2608,
+    "name": "天曜灵坠",
+    "pos": 6,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 1300
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2708,
+    "name": "天玄法戒",
+    "pos": 7,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 1040
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2808,
+    "name": "天灵符",
+    "pos": 8,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 1755
       }
     ],
     "affix_pool": [
@@ -342,6 +1254,120 @@
     "unlock_level": 81
   },
   {
+    "id": 2209,
+    "name": "昆纹冠",
+    "pos": 2,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 3080
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
+    "id": 2409,
+    "name": "昆云护腿",
+    "pos": 4,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 560
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
+    "id": 2509,
+    "name": "昆风灵靴",
+    "pos": 5,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 392
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
+    "id": 2609,
+    "name": "昆曜灵坠",
+    "pos": 6,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 1850
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
+    "id": 2709,
+    "name": "昆玄法戒",
+    "pos": 7,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 1480
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
+    "id": 2809,
+    "name": "昆灵符",
+    "pos": 8,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 2520
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
     "id": 2019,
     "name": "混沌帝剑",
     "pos": 1,
@@ -369,6 +1395,120 @@
       {
         "attr_id": 3,
         "value": 7800
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
+  },
+  {
+    "id": 2210,
+    "name": "混纹冠",
+    "pos": 2,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 4290
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
+  },
+  {
+    "id": 2410,
+    "name": "混云护腿",
+    "pos": 4,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 780
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
+  },
+  {
+    "id": 2510,
+    "name": "混风灵靴",
+    "pos": 5,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 2,
+        "value": 546
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
+  },
+  {
+    "id": 2610,
+    "name": "混曜灵坠",
+    "pos": 6,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 2600
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
+  },
+  {
+    "id": 2710,
+    "name": "混玄法戒",
+    "pos": 7,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 2080
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
+  },
+  {
+    "id": 2810,
+    "name": "混灵符",
+    "pos": 8,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 3510
       }
     ],
     "affix_pool": [

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// 生成 10 阶（每 10 级一阶，上限 100 级）的关卡/灵宠/装备/掉落/等级段配置。
-// 用法：node gen_tier_configs.cjs  （在当前目录生成 stage.json/pet.json/equip.json/drop.json/level.json）
+// 生成 10 阶（每 10 级一阶，上限 100 级）的关卡/灵宠/装备(8部位)/掉落/等级段配置。
+// 用法：node gen_tier_configs.cjs  （生成 stage/pet/equip/drop/level.json 与 client_maps.txt）
 'use strict';
 const fs = require('fs');
 
-// 每一阶：关卡(1) + 灵宠(1) + 装备(武器+衣服 2) + 掉落表(1)
+// 每一阶：关卡(1) + 灵宠(1) + 装备(武器+衣服 2，其余 6 部位自动派生) + 掉落表(1)
 const tiers = [
   { b: 1, lvMin: 1, lvMax: 10, realm: '炼气期',
     stage: { id: 1001, type: 1, name: '尘息小径', power: 400, monsters: [101, 102], exp: 100, copper: 200 },
@@ -48,6 +48,18 @@ const tiers = [
     weapon: { id: 2019, name: '混沌帝剑', q: 5, atk: 5200 }, armor: { id: 2020, name: '混沌帝袍', q: 5, hp: 7800 } },
 ];
 
+// 6 个新部位派生规则：[pos, 名称前缀元素, attr_id(1攻2防3血), 取值系数]
+const tierElem = ['青', '灵', '星', '寒', '雷', '妖', '幽', '天', '昆', '混'];
+const defProgression = [20, 35, 55, 85, 130, 190, 280, 400, 560, 780];
+const NEW_SLOTS = [
+  { pos: 2, baseId: 2200, name: (e) => e + '纹冠', attr: 3, pool: [103, 104], val: (w, a) => Math.round(a.hp * 0.55) },   // 头盔 生命
+  { pos: 4, baseId: 2400, name: (e) => e + '云护腿', attr: 2, pool: [103, 104], val: (w, a, t) => defProgression[t.b - 1] }, // 裤子 防御
+  { pos: 5, baseId: 2500, name: (e) => e + '风灵靴', attr: 2, pool: [103, 104], val: (w, a, t) => Math.round(defProgression[t.b - 1] * 0.7) }, // 鞋子 防御
+  { pos: 6, baseId: 2600, name: (e) => e + '曜灵坠', attr: 1, pool: [101, 102], val: (w, a) => Math.round(w.atk * 0.5) }, // 项链 攻击
+  { pos: 7, baseId: 2700, name: (e) => e + '玄法戒', attr: 1, pool: [101, 102], val: (w, a) => Math.round(w.atk * 0.4) }, // 戒指 攻击
+  { pos: 8, baseId: 2800, name: (e) => e + '灵符', attr: 3, pool: [103, 104], val: (w, a) => Math.round(a.hp * 0.45) },   // 护符 生命
+];
+
 const stages = [], pets = [], equips = [], drops = [], levels = [];
 for (const t of tiers) {
   const st = t.stage, pet = t.pet, w = t.weapon, a = t.armor;
@@ -62,16 +74,25 @@ for (const t of tiers) {
     skills: [{ skill_id: 4000 + t.b, max_level: 10 }],
     unlock_level: t.lvMin,
   });
+  // 武器 + 衣服（保留原 ID）
   equips.push({ id: w.id, name: w.name, pos: 1, quality: w.q, base_attrs: [{ attr_id: 1, value: w.atk }], affix_pool: [101, 102], max_strengthen: 50, max_refine: 10, unlock_level: t.lvMin });
   equips.push({ id: a.id, name: a.name, pos: 3, quality: a.q, base_attrs: [{ attr_id: 3, value: a.hp }], affix_pool: [103, 104], max_strengthen: 50, max_refine: 10, unlock_level: t.lvMin });
+  // 6 个新部位
+  const newEntries = NEW_SLOTS.map((s) => {
+    const id = s.baseId + t.b;
+    return { id, name: s.name(tierElem[t.b - 1]), pos: s.pos, quality: a.q, base_attrs: [{ attr_id: s.attr, value: s.val(w, a, t) }], affix_pool: s.pool, max_strengthen: 50, max_refine: 10, unlock_level: t.lvMin };
+  });
+  equips.push(...newEntries);
+  // 掉落表：8 部位 + 灵石 + 灵宠
   const entries = [
     { item_id: w.id, weight: 100, count_min: 1, count_max: 1 },
     { item_id: a.id, weight: 100, count_min: 1, count_max: 1 },
-    { item_id: 5001, weight: 40, count_min: 1, count_max: 3 },
   ];
-  if (t.b >= 3) entries.push({ item_id: pet.id, weight: 8, count_min: 1, count_max: 1 }); // 三阶起低概率掉落灵宠
+  for (const e of newEntries) entries.push({ item_id: e.id, weight: 60, count_min: 1, count_max: 1 });
+  entries.push({ item_id: 5001, weight: 40, count_min: 1, count_max: 3 });
+  if (t.b >= 3) entries.push({ item_id: pet.id, weight: 8, count_min: 1, count_max: 1 });
   drops.push({ id: t.b, entries });
-  levels.push({ band: t.b, level_min: t.lvMin, level_max: t.lvMax, realm: t.realm, stage_ids: [st.id], pet_ids: [pet.id], equip_ids: [w.id, a.id] });
+  levels.push({ band: t.b, level_min: t.lvMin, level_max: t.lvMax, realm: t.realm, stage_ids: [st.id], pet_ids: [pet.id], equip_ids: [w.id, a.id, ...newEntries.map(e => e.id)] });
 }
 
 fs.writeFileSync('stage.json', JSON.stringify(stages, null, 2) + '\n');
@@ -79,4 +100,20 @@ fs.writeFileSync('pet.json', JSON.stringify(pets, null, 2) + '\n');
 fs.writeFileSync('equip.json', JSON.stringify(equips, null, 2) + '\n');
 fs.writeFileSync('drop.json', JSON.stringify(drops, null, 2) + '\n');
 fs.writeFileSync('level.json', JSON.stringify(levels, null, 2) + '\n');
+
+// 生成客户端 map（供复制到 game.js）
+const nameMap = {}, posMap = {}, baseMap = {}, qMap = {};
+for (const e of equips) {
+  nameMap[e.id] = e.name; posMap[e.id] = e.pos; qMap[e.id] = e.quality;
+  const b = e.base_attrs[0];
+  baseMap[e.id] = { atk: b.attr_id === 1 ? b.value : 0, def: b.attr_id === 2 ? b.value : 0, hp: b.attr_id === 3 ? b.value : 0 };
+}
+const j = (o) => JSON.stringify(o);
+const lines = [
+  'const EQUIP_NAME = ' + j(nameMap) + ';',
+  'const EQUIP_POS = ' + j(posMap) + ';',
+  'const EQUIP_BASE = ' + j(baseMap) + ';',
+  'const EQUIP_QUALITY = ' + j(qMap) + ';',
+];
+fs.writeFileSync('client_maps.txt', lines.join('\n') + '\n');
 console.log(`生成完成：stages=${stages.length} pets=${pets.length} equips=${equips.length} drops=${drops.length} levels=${levels.length}`);

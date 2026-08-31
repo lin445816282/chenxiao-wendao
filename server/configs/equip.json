@@ -1,0 +1,38 @@
+[
+  {
+    "id": 2001,
+    "name": "青锋剑",
+    "pos": 1,
+    "quality": 1,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 100
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10
+  },
+  {
+    "id": 2002,
+    "name": "流云法衣",
+    "pos": 3,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 150
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10
+  }
+]

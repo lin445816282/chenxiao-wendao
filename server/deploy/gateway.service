@@ -1,0 +1,20 @@
+# 《尘霄问道》网关 systemd 服务
+# 放置：/etc/systemd/system/chenxiao-gateway.service
+# 注意：生产环境网关只监听 127.0.0.1:8080，由 Nginx 反代对外，避免直接暴露端口
+
+[Unit]
+Description=Chenxiao Wendao Gateway
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/chenxiao/server
+ExecStart=/opt/chenxiao/server/bin/gateway -config /opt/chenxiao/server/configs -addr 127.0.0.1:8080
+Restart=always
+RestartSec=3
+# 建议用非 root 用户运行（先建 game 用户：useradd -r -s /sbin/nologin game）
+# User=game
+# Group=game
+
+[Install]
+WantedBy=multi-user.target

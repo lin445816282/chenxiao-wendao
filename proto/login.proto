@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package chenxiao.login;
+
+option go_package = "chenxiao/proto/login;login";
+
+import "common.proto";
+
+// 角色快照（登录 / 创建角色 / 推送共用）
+message RoleBrief {
+  int64 player_id = 1;
+  string nickname = 2;
+  string avatar = 3;
+  int32 level = 4;
+  int64 exp = 5;          // 修为
+  int64 copper = 6;       // 铜钱
+  int64 power = 7;        // 战力
+  int32 normal_stage_id = 8; // 普通关卡最高已通关 ID
+  int32 elite_stage_id = 9;  // 精英关卡最高已通关 ID
+  int32 boss_stage_id = 10;  // BOSS 关卡最高已通关 ID
+  int64 last_offline_settle_at = 11; // 上次离线结算截止时间（Unix 秒）
+}
+
+// 登录：wx.login 的 code 换 openid
+message C2SLogin {
+  string code = 1;        // wx.login 返回的临时 code
+  string device_info = 2; // 设备信息（可选，日志用）
+}
+
+message S2CLogin {
+  common.Result result = 1;
+  string token = 2;       // 会话 token，后续请求在包头携带
+  bool has_role = 3;      // 是否已创建角色
+  RoleBrief role = 4;     // 已有角色时的快照
+}
+
+// 创建角色
+message C2SCreateRole {
+  string nickname = 1;
+  int32 avatar_id = 2; // 头像资源 ID
+}
+
+message S2CCreateRole {
+  common.Result result = 1;
+  RoleBrief role = 2;
+}
+
+// 服务端推送的角色快照（登录后 / 关键属性变更时下发）
+message S2CRoleBrief {
+  RoleBrief role = 1;
+}

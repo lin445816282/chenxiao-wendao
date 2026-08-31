@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package chenxiao.ad;
+
+option go_package = "chenxiao/proto/ad;ad";
+
+import "common.proto";
+
+// ============================================================
+// 广告变现（V1.0 唯一营收，无充值）
+// 流程：客户端 C2SAdRequest -> 服务端下发 biz_id（幂等键）
+//       客户端播放广告 -> 播放完成上报 C2SAdReport(biz_id)
+//       服务端向微信做服务端校验后发奖，防止本地篡改刷奖励。
+// ============================================================
+
+// 请求观看广告
+message C2SAdRequest {
+  int32 scene = 1; // 场景：1=挂机倍率 2=材料 3=复活 4=翻倍 5=其他
+}
+
+message S2CAdRequest {
+  common.Result result = 1;
+  string biz_id = 2;      // 本次广告请求幂等键，上报时回传
+  int32 remain_times = 3; // 今日剩余可观看次数
+}
+
+// 观看完成上报
+message C2SAdReport {
+  string biz_id = 1;
+}
+
+message S2CAdReport {
+  common.Result result = 1;
+  repeated common.RewardItem rewards = 2; // 本次发放奖励
+}

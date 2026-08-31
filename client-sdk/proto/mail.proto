@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package chenxiao.mail;
+
+option go_package = "chenxiao/proto/mail;mail";
+
+import "common.proto";
+
+// 邮件附件条目
+message MailAttachment {
+  int32 item_id = 1;
+  int64 count = 2;
+  // 装备类附件（带实例）在此扩展
+  int64 equip_uid = 3; // 装备实例 ID（0=非装备附件）
+  int32 equip_id = 4;
+}
+
+// 邮件
+message MailInfo {
+  int64 mail_id = 1;
+  int32 mail_type = 2; // 1=系统 2=补偿 3=活动
+  string title = 3;
+  string content = 4;
+  repeated MailAttachment attachments = 5;
+  bool is_read = 6;
+  bool is_claimed = 7; // 附件是否已领取
+  int64 expire_at = 8; // 过期时间（Unix 秒，0=不过期）
+  int64 created_at = 9;
+}
+
+// 邮件列表
+message C2SMailList {}
+message S2CMailList {
+  common.Result result = 1;
+  repeated MailInfo mails = 2;
+}
+
+// 已读
+message C2SMailRead {
+  int64 mail_id = 1;
+}
+message S2CMailRead {
+  common.Result result = 1;
+  int64 mail_id = 2;
+}
+
+// 领取附件
+message C2SMailClaim {
+  int64 mail_id = 1;
+}
+message S2CMailClaim {
+  common.Result result = 1;
+  int64 mail_id = 2;
+  repeated common.RewardItem rewards = 3;
+}

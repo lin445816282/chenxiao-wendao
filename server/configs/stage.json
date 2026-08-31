@@ -1,0 +1,60 @@
+[
+  {
+    "id": 1001,
+    "type": 1,
+    "name": "尘息小径",
+    "recommend_power": 400,
+    "monster_ids": [
+      101,
+      102
+    ],
+    "boss_id": 0,
+    "exp_reward": 100,
+    "copper_reward": 200,
+    "drop_table_id": 1,
+    "unlock_prev_stage": 0
+  },
+  {
+    "id": 1002,
+    "type": 1,
+    "name": "霄影林",
+    "recommend_power": 700,
+    "monster_ids": [
+      103,
+      104
+    ],
+    "boss_id": 0,
+    "exp_reward": 150,
+    "copper_reward": 300,
+    "drop_table_id": 1,
+    "unlock_prev_stage": 1001
+  },
+  {
+    "id": 2001,
+    "type": 2,
+    "name": "玄灵试炼",
+    "recommend_power": 1500,
+    "monster_ids": [
+      201
+    ],
+    "boss_id": 201,
+    "exp_reward": 500,
+    "copper_reward": 800,
+    "drop_table_id": 2,
+    "unlock_prev_stage": 1002
+  },
+  {
+    "id": 3001,
+    "type": 3,
+    "name": "血魔渊",
+    "recommend_power": 2200,
+    "monster_ids": [
+      301
+    ],
+    "boss_id": 301,
+    "exp_reward": 2000,
+    "copper_reward": 3000,
+    "drop_table_id": 3,
+    "unlock_prev_stage": 2001
+  }
+]

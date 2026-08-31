@@ -1,0 +1,6 @@
+[
+  {"id": 101, "name": "锋芒", "attr_id": 1, "min": 10, "max": 50},
+  {"id": 102, "name": "坚固", "attr_id": 3, "min": 10, "max": 30},
+  {"id": 103, "name": "迅捷", "attr_id": 2, "min": 5, "max": 20},
+  {"id": 104, "name": "破甲", "attr_id": 1, "min": 15, "max": 60}
+]

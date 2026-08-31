@@ -1,0 +1,22 @@
+# ===== 编译产物 =====
+server/bin/
+*.exe
+*.test
+*.out
+
+# ===== 数据库（本地存档，不入库）=====
+server/data/
+*.db
+*.db-journal
+
+# ===== 依赖 =====
+node_modules/
+
+# ===== 截图/预览工具 =====
+client/preview/chrome/
+client/preview/*.png
+client/preview/battle*.png
+
+# ===== 日志/临时 =====
+*.log
+.DS_Store

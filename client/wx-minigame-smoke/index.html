@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>尘霄问道 · 服务器连接测试</title>
+<style>
+  body { font-family: 'PingFang SC','Microsoft YaHei',sans-serif; background:#0a1628; color:#e6e6e6; margin:0; padding:24px; max-width:760px; margin:0 auto; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .sub { color:#8a8a8a; font-size:13px; margin-bottom:16px; }
+  .status { display:inline-block; width:10px; height:10px; border-radius:50%; background:#666; margin-right:8px; vertical-align:middle; }
+  .status.ok { background:#2ecc71; }
+  .status.err { background:#e74c3c; }
+  .row { margin:16px 0; }
+  button { background:#4da6ff; color:#fff; border:none; padding:10px 16px; border-radius:10px; font-size:14px; cursor:pointer; margin-right:8px; margin-bottom:8px; }
+  button:active { opacity:.8; }
+  #log { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:12px; padding:16px; font-family:monospace; font-size:13px; min-height:260px; max-height:420px; overflow:auto; white-space:pre-wrap; }
+  .ok { color:#2ecc71; } .err { color:#e74c3c; } .dim { color:#8a8a8a; }
+</style>
+</head>
+<body>
+<h1>尘霄问道 · 服务器连接测试</h1>
+<div class="sub">wss://game.ct256.cn/ws</div>
+<div><span class="status" id="dot"></span><span id="state">未连接</span></div>
+<div class="row">
+  <button onclick="connect()">重新连接</button>
+  <button onclick="send(1000)">登录</button>
+  <button onclick="send(2000)">离线收益查询</button>
+  <button onclick="send(3000, stageBody())">开始战斗</button>
+  <button onclick="send(5000)">灵宠列表</button>
+  <button onclick="send(8000)">排行榜</button>
+  <button onclick="send(9000)">广告请求</button>
+</div>
+<div id="log"></div>
+
+<script>
+const SOCKET_URL = 'wss://game.ct256.cn/ws';
+const HEALTH_URL = 'https://game.ct256.cn/healthz';
+let ws = null;
+const logEl = document.getElementById('log');
+const dot = document.getElementById('dot');
+const state = document.getElementById('state');
+
+function log(msg, cls) {
+  const div = document.createElement('div');
+  if (cls) div.className = cls;
+  div.textContent = msg;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function encode(msgId, body) {
+  const b = body || new ArrayBuffer(0);
+  const buf = new ArrayBuffer(8 + b.byteLength);
+  const dv = new DataView(buf);
+  dv.setUint32(0, msgId);        // 大端
+  dv.setUint32(4, b.byteLength); // 大端
+  new Uint8Array(buf, 8).set(new Uint8Array(b));
+  return buf;
+}
+
+function bytesToAscii(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i++) {
+    const c = bytes[i];
+    s += (c >= 32 && c < 127) ? String.fromCharCode(c) : '.';
+  }
+  return s;
+}
+
+const MSG_NAME = {1001:'S2CLogin',2001:'S2COfflineRewardQuery',3001:'S2CStartStage',5001:'S2CPetList',8001:'S2CRankQuery',9001:'S2CAdRequest'};
+
+function connect() {
+  log('连接 ' + SOCKET_URL, 'dim');
+  ws = new WebSocket(SOCKET_URL);
+  ws.binaryType = 'arraybuffer';
+  ws.onopen = () => { dot.className = 'status ok'; state.textContent = '已连接'; log('✅ 连接成功', 'ok'); };
+  ws.onclose = () => { dot.className = 'status err'; state.textContent = '已断开'; log('连接已断开', 'err'); };
+  ws.onerror = () => log('❌ 连接错误', 'err');
+  ws.onmessage = (ev) => {
+    const buf = ev.data;
+    const dv = new DataView(buf);
+    const msgId = dv.getUint32(0);
+    const len = dv.getUint32(4);
+    const body = new Uint8Array(buf, 8, len);
+    log('← 收到 msgId=' + msgId + ' (' + (MSG_NAME[msgId] || '未知') + ') len=' + len + '  body=' + bytesToAscii(body));
+  };
+}
+
+function send(msgId, body) {
+  if (!ws || ws.readyState !== 1) { log('⚠️ 请先点「重新连接」', 'err'); return; }
+  ws.send(encode(msgId, body));
+  log('→ 发送 C2S msgId=' + msgId);
+}
+
+// C2SStartStage 的 protobuf：stage_id=1001（尘息小径，字段2 varint）
+function stageBody() {
+  return new Uint8Array([0x10, 0xE9, 0x07]).buffer;
+}
+
+// 页面加载：先健康检查，再自动连 WebSocket
+fetch(HEALTH_URL)
+  .then(r => r.text())
+  .then(t => log('✅ 健康检查 /healthz -> ' + t, 'ok'))
+  .catch(e => log('❌ 健康检查失败: ' + e, 'err'))
+  .finally(connect);
+</script>
+</body>
+</html>

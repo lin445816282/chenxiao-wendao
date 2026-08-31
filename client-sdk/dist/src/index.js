@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.decodeBody = exports.decodeFrame = exports.encodeFrame = exports.loadProto = exports.MsgId = exports.GameApi = exports.GameClient = void 0;
+var client_1 = require("./client");
+Object.defineProperty(exports, "GameClient", { enumerable: true, get: function () { return client_1.GameClient; } });
+var api_1 = require("./api");
+Object.defineProperty(exports, "GameApi", { enumerable: true, get: function () { return api_1.GameApi; } });
+var msgid_1 = require("./msgid");
+Object.defineProperty(exports, "MsgId", { enumerable: true, get: function () { return msgid_1.MsgId; } });
+var codec_1 = require("./codec");
+Object.defineProperty(exports, "loadProto", { enumerable: true, get: function () { return codec_1.loadProto; } });
+Object.defineProperty(exports, "encodeFrame", { enumerable: true, get: function () { return codec_1.encodeFrame; } });
+Object.defineProperty(exports, "decodeFrame", { enumerable: true, get: function () { return codec_1.decodeFrame; } });
+Object.defineProperty(exports, "decodeBody", { enumerable: true, get: function () { return codec_1.decodeBody; } });

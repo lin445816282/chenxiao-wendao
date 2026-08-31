@@ -1,0 +1,6 @@
+{
+  "max_offline_seconds": 86400,
+  "exp_per_second": 2,
+  "copper_per_second": 5,
+  "ad_multiplier": 2
+}

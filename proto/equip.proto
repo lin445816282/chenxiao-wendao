@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package chenxiao.equip;
+
+option go_package = "chenxiao/proto/equip;equip";
+
+import "common.proto";
+
+// 装备实例
+message EquipInfo {
+  int64 equip_uid = 1;
+  int32 equip_id = 2;
+  int32 pos = 3;                 // 0=背包 1..8=部位
+  int32 strengthen_level = 4;    // 强化等级
+  int32 refine_level = 5;        // 精炼等级
+  repeated common.EquipAffix affixes = 6; // 随机词条
+  int32 score = 7;               // 评分
+  bool is_locked = 8;            // 是否锁定
+}
+
+// 装备列表
+message C2SEquipList {}
+message S2CEquipList {
+  common.Result result = 1;
+  repeated EquipInfo equips = 2;
+}
+
+// 穿戴 / 脱下（target_pos = 0 表示脱下到背包）
+message C2SEquipWear {
+  int64 equip_uid = 1;
+  int32 target_pos = 2;
+}
+message S2CEquipWear {
+  common.Result result = 1;
+  repeated EquipInfo changed = 2; // 受影响的装备（穿/脱双方，用于 UI 刷新）
+}
+
+// 强化
+message C2SEquipStrengthen {
+  int64 equip_uid = 1;
+}
+message S2CEquipStrengthen {
+  common.Result result = 1;
+  EquipInfo equip = 2;
+  int64 copper_cost = 3; // 本次消耗铜钱（展示用）
+}
+
+// 精炼
+message C2SEquipRefine {
+  int64 equip_uid = 1;
+}
+message S2CEquipRefine {
+  common.Result result = 1;
+  EquipInfo equip = 2;
+}
+
+// 分解（换取材料）
+message C2SEquipDecompose {
+  repeated int64 equip_uids = 1;
+}
+message S2CEquipDecompose {
+  common.Result result = 1;
+  repeated common.RewardItem rewards = 2;
+}

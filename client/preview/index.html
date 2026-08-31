@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>body{margin:0;background:#111;display:flex;justify-content:center;align-items:center;height:100vh}</style>
+</head>
+<body>
+<canvas id="game" width="390" height="844"></canvas>
+<script>
+const SW = 390, SH = 844, GROUND = 480;
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+let scene = 'home', hasRole = true;
+let nickname = '尘霄散修', level = 5, exp = 123456, copper = 67890, power = 1107;
+let log = ['秘境闯关 · 第3章 通关', '离线 8 小时 · 修为 +9600', '获得装备：青锋剑'];
+let buttons = [];
+const STAGES = [
+  { id: 1001, type: 1, name: '尘息小径', monsterName: '尘息小妖', power: 400, icon: '🌿', img: 'monster' },
+  { id: 1002, type: 1, name: '霄影林', monsterName: '霄影精怪', power: 700, icon: '🌲', img: 'monsterElite' },
+  { id: 2001, type: 2, name: '玄灵试炼', monsterName: '玄灵魔尊', power: 1500, icon: '🐉', boss: true, img: 'boss' },
+  { id: 3001, type: 3, name: '血魔渊', monsterName: '血魔老祖', power: 2200, icon: '🩸', boss: true, img: 'bossBlood' },
+];
+const EQUIP_NAME = { 2001: '青锋剑', 2002: '流云法衣' };
+const EQUIP_POS = { 2001: 1, 2002: 3 };
+const POS_NAME = { 1: '武器', 2: '头盔', 3: '衣服', 4: '裤子', 5: '鞋子', 6: '项链', 7: '戒指', 8: '护符' };
+const EQUIP_BASE = { 2001: { atk: 100, def: 0, hp: 0 }, 2002: { atk: 0, def: 0, hp: 150 } };
+const AFFIX_ATTR = { 101: '攻击', 102: '生命', 103: '防御', 104: '攻击' };
+const POS_LIST = [1, 2, 3, 4, 5, 6, 7, 8];
+const PET_NAME = { 3001: '雪灵狐', 3002: '玄龟幼兽' };
+const stageProgress = { cleared: [1001], stars: { 1001: 3 } };
+function stageUnlocked(s) { if (s.id === 1001) return true; const i = STAGES.findIndex(x => x.id === s.id); return i > 0 && stageProgress.cleared.indexOf(STAGES[i - 1].id) >= 0; }
+let battle = { t: 0, pushed: 0, hits: [], done: false, hasPet: true, stage: STAGES[0], res: { win: true, star: 3, actions: [
+  { atk: 1, tgt: 3, dmg: 180, heal: 0, crit: false, dodge: false },
+  { atk: 2, tgt: 3, dmg: 90, heal: 0, crit: false, dodge: false },
+  { atk: 3, tgt: 1, dmg: 45, heal: 0, crit: false, dodge: false },
+  { atk: 1, tgt: 3, dmg: 0, heal: 0, crit: false, dodge: true },
+  { atk: 3, tgt: 2, dmg: 160, heal: 0, crit: true, dodge: false },
+  { atk: 2, tgt: 3, dmg: 120, heal: 0, crit: false, dodge: false },
+  { atk: 1, tgt: 3, dmg: 220, heal: 0, crit: true, dodge: false },
+], rewards: [{ id: 1, c: 200 }], equips: [2001], pets: [3001] } };
+let equipData = [
+  { uid: 1, id: 2001, pos: 1, s: 5, r: 2, score: 135, affixes: [{ aid: 101, av: 30 }] },
+  { uid: 2, id: 2001, pos: 0, s: 0, r: 0, score: 100, affixes: [{ aid: 104, av: 45 }] },
+  { uid: 3, id: 2002, pos: 0, s: 3, r: 0, score: 165, affixes: [{ aid: 102, av: 20 }] },
+];
+let selIdx = 0;
+
+// ===== 特效状态 =====
+let particles = [], slashes = [], shake = 0, arcLife = 0, flashHero = 0, flashMonster = 0, flashPet = 0;
+// 氛围粒子 + 淡入
+let ambient = [];
+for (let i = 0; i < 26; i++) ambient.push({ x: Math.random() * SW, y: Math.random() * SH, r: 1 + Math.random() * 2.5, sp: 10 + Math.random() * 25, ph: Math.random() * 6.28 });
+let fade = 0;
+function renderAmbient(color) {
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of ambient) {
+    ctx.globalAlpha = 0.3 + 0.3 * Math.sin(p.ph + performance.now() * 0.002);
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+}
+function spawn(x, y, color, n = 40) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 150 + Math.random() * 200;
+    particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60, life: 0, max: 0.5 + Math.random() * 0.5, color, size: 3 + Math.random() * 4, g: 420 });
+  }
+}
+
+// ===== 图片 =====
+const IMG = {};
+function load(k, p) { const im = new Image(); im.src = p; im.onload = () => IMG[k] = im; }
+load('bg', 'images/bg_home.png'); load('bgBattle', 'images/bg_battle.png');
+load('hero', 'images/hero_male.png'); load('monster', 'images/monster_basic.png'); load('monsterElite', 'images/monster_elite.png'); load('boss', 'images/boss.png'); load('bossBlood', 'images/boss_blood.png'); load('pet', 'images/pet_linghu.png'); load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png');
+
+function draw(k, x, y, w, h) { if (IMG[k]) ctx.drawImage(IMG[k], x, y, w, h); }
+function text(s, x, y, size, color, align = 'center', bold = false) {
+  ctx.font = (bold ? 'bold ' : '') + size + 'px sans-serif'; ctx.textAlign = align;
+  ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.lineJoin = 'round';
+  ctx.strokeText(s, x, y); ctx.fillStyle = color; ctx.fillText(s, x, y);
+}
+function panel(x, y, w, h, color, r = 12) { ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.fill(); }
+function roundRectPath(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function btn(b) {
+  const r = 4;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)'; roundRectPath(b.x + 1, b.y + 3, b.w, b.h, r); ctx.fill();
+  const g = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.h);
+  g.addColorStop(0, '#c9a24b'); g.addColorStop(1, '#7a5a1e');
+  ctx.fillStyle = g; roundRectPath(b.x, b.y, b.w, b.h, r); ctx.fill();
+  ctx.fillStyle = 'rgba(255,235,180,0.22)'; roundRectPath(b.x + 3, b.y + 2, b.w - 6, b.h / 2 - 2, r - 2); ctx.fill();
+  ctx.strokeStyle = '#e8c96a'; ctx.lineWidth = 1.5; roundRectPath(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1, r); ctx.stroke();
+  ctx.strokeStyle = '#4a3416'; ctx.lineWidth = 1; roundRectPath(b.x + 3.5, b.y + 3.5, b.w - 7, b.h - 7, r - 2); ctx.stroke();
+  ctx.fillStyle = '#e8c96a'; const s = 3;
+  ctx.fillRect(b.x + 2, b.y + 2, s, s); ctx.fillRect(b.x + b.w - 2 - s, b.y + 2, s, s);
+  ctx.fillRect(b.x + 2, b.y + b.h - 2 - s, s, s); ctx.fillRect(b.x + b.w - 2 - s, b.y + b.h - 2 - s, s, s);
+  const label = b.icon ? b.icon + ' ' + b.label : b.label;
+  text(label, b.x + b.w / 2, b.y + b.h / 2 + 5, 14, '#f7ecc8', 'center', true);
+}
+function bar(x, y, w, h, color, ratio) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x, y, w, h); ctx.fillStyle = color; ctx.fillRect(x, y, w * Math.max(0, Math.min(1, ratio)), h); }
+
+function layout() {
+  buttons = []; const w = 84, h = 48, g = 8;
+  const bottom = [{ label: '登录', icon: '🔑' }, { label: '战斗', icon: '⚔' }, { label: '领收益', icon: '✨' }, { label: '装备', icon: '🛡' }];
+  const top = [{ label: '背包', icon: '🎒' }, { label: '邮件', icon: '✉' }, { label: '排行', icon: '🏆' }];
+  bottom.forEach((b, i) => buttons.push({ x: 15 + i * (w + g), y: SH - 12 - h, w, h, label: b.label, icon: b.icon }));
+  const topW = 3 * w + 2 * g;
+  top.forEach((b, i) => buttons.push({ x: (SW - topW) / 2 + i * (w + g), y: SH - 12 - 2 * h - g, w, h, label: b.label, icon: b.icon }));
+}
+
+function renderHome() {
+  draw('bg', 0, 0, SW, SH);
+  ctx.fillStyle = 'rgba(10,22,40,0.3)'; ctx.fillRect(0, 0, SW, SH);
+  renderAmbient('#ffe9a0');
+  text('尘霄问道', SW / 2, 46, 26, '#fff', 'center', true);
+  text('● 已连接', SW / 2, 70, 12, '#4ade80');
+  draw('hero', SW / 2 - 80, 92, 160, 284);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(SW / 2, 388, 62, 10, 0, 0, Math.PI * 2); ctx.fill();
+  text(nickname + '  ·  Lv.' + level, SW / 2, 418, 18, '#ffd76a', 'center', true);
+  text('⚔ 战力 ' + power + '　ⓘ', SW / 2, 442, 14, '#7cc4ff', 'center', true);
+  panel(SW / 2 - 82, 452, 164, 34, 'rgba(0,0,0,0.45)', 17);
+  text('修为 ' + exp + '   铜钱 ' + copper, SW / 2, 475, 12, '#ffe9b0');
+  panel(20, 490, SW - 40, 100, 'rgba(15,25,45,0.6)', 14);
+  text('离线修炼中', 34, 518, 14, '#ffd76a', 'left', true);
+  text('修为 +2/秒 · 铜钱 +5/秒 · 离线有收益', 34, 542, 12, '#e8e8e8', 'left');
+  text('看广告可翻倍 →', 34, 566, 12, '#7cc4ff', 'left');
+  panel(20, 588, SW - 40, 108, 'rgba(15,25,45,0.55)', 12);
+  text('— 记录 —', SW / 2, 610, 12, '#9ab', 'center');
+  log.forEach((s, i) => text(s, 32, 634 + i * 24, 13, '#e8e8e8', 'left'));
+  layout(); for (const b of buttons) btn(b);
+}
+
+function renderBattle() {
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+  draw('bgBattle', 0, 0, SW, SH);
+  ctx.fillStyle = 'rgba(10,22,40,0.18)'; ctx.fillRect(0, 0, SW, SH);
+  renderAmbient('#9fd8ff');
+  if (!battle) { ctx.restore(); return; }
+  const t = battle.t; const hl = (t % 1) < 0.25 ? 18 : 0; const ms = ((t + 0.25) % 1) < 0.1 ? 10 : 0;
+  const st = battle.stage; const isBoss = st && st.boss;
+  text('秘境 · ' + st.name, SW / 2, 40, 18, '#fff', 'center', true);
+  if (isBoss && t < 1.4) { const a = Math.min(1, t * 2); text('⚠ BOSS 来袭', SW / 2, GROUND - 210, Math.round(30 * (0.8 + 0.2 * a)), 'rgba(255,90,90,' + a + ')', 'center', true); }
+  if (arcLife > 0) {
+    ctx.strokeStyle = 'rgba(255,240,190,0.25)'; ctx.lineWidth = 16;
+    ctx.beginPath(); ctx.arc(SW / 2, GROUND - 110, 120, Math.PI * 0.75, Math.PI * 2.25); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,245,205,0.95)'; ctx.lineWidth = 8;
+    ctx.beginPath(); ctx.arc(SW / 2, GROUND - 110, 120, Math.PI * 0.75, Math.PI * 2.25); ctx.stroke();
+  }
+  const mw = isBoss ? 190 : 150, mh = isBoss ? 190 : 150, mx = SW - mw - 24 - ms, my = GROUND - mh, mcx = mx + mw / 2;
+  ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(99, GROUND + 5, 52, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(mcx, GROUND + 5, mw * 0.36, 10, 0, 0, Math.PI * 2); ctx.fill();
+  text('尘霄散修', 99, GROUND - 278, 12, '#b7f0c0', 'center', true);
+  text((isBoss ? 'BOSS · ' : '') + st.monsterName, mcx, my - 12, 12, isBoss ? '#ff8080' : '#ffd2d2', 'center', true);
+  const hasPet = battle.hasPet, pcx = 168, px = 128, py = GROUND - 84;
+  if (hasPet) {
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.beginPath(); ctx.ellipse(pcx, GROUND + 4, 30, 6, 0, 0, Math.PI * 2); ctx.fill();
+    text('雪灵狐', pcx, py - 6, 11, '#ffe9b0', 'center', true);
+    draw('pet', px, py, 80, 80);
+    if (flashPet > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw('pet', px, py, 80, 80); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+  }
+  const mimg = st.img || 'monster';
+  draw('hero', 24 + hl, GROUND - 267, 150, 267);
+  const wpnX = 128 + hl, wpnY = GROUND - 172;
+  ctx.save();
+  ctx.translate(wpnX, wpnY);
+  if (arcLife > 0) ctx.rotate(-0.7 + (0.35 - arcLife) * 5);
+  const wpnGlow = 0.5 + 0.35 * Math.sin(t * 4);
+  ctx.globalAlpha = wpnGlow; ctx.globalCompositeOperation = 'lighter';
+  draw('iconWeapon', -17, -17, 34, 34);
+  ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+  draw('iconWeapon', -17, -17, 34, 34);
+  ctx.restore();
+  draw(mimg, mx, my, mw, mh);
+  if (flashHero > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw('hero', 24 + hl, GROUND - 267, 150, 267); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+  if (flashMonster > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(mimg, mx, my, mw, mh); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+  let dmgM = 0, dmgMT = 0, dmgH = 0, dmgHT = 0, dmgP = 0, dmgPT = 0;
+  for (const a of battle.res.actions) { if (a.atk === 3) { if (a.tgt === 2) dmgPT += a.dmg; else dmgHT += a.dmg; } else dmgMT += a.dmg; }
+  for (let i = 0; i < battle.pushed; i++) { const a = battle.res.actions[i]; if (a.atk === 3) { if (a.tgt === 2) dmgP += a.dmg; else dmgH += a.dmg; } else dmgM += a.dmg; }
+  bar(24, GROUND + 16, 150, 10, '#3ddc84', 1 - (dmgHT ? dmgH / dmgHT : 0));
+  if (hasPet) bar(118, GROUND + 30, 100, 8, '#7cc4ff', 1 - (dmgPT ? dmgP / dmgPT : 0));
+  bar(mx, GROUND + 16, mw, 12, '#ff5c5c', 1 - (dmgMT ? dmgM / dmgMT : 0));
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of particles) {
+    ctx.globalAlpha = 1 - p.life / p.max;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+  }
+  for (const s of slashes) {
+    const pr = s.life / s.max, sx = s.x + s.dx * pr;
+    const a = Math.max(0, 1 - Math.abs(pr - 0.5) * 1.5);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = s.crit ? '#ffd54a' : '#9fd8ff';
+    ctx.beginPath(); ctx.ellipse(sx, s.y, 24, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = a * 0.5;
+    ctx.beginPath(); ctx.ellipse(sx - s.dx * 0.2, s.y, 15, 4, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.globalAlpha = 1;
+  for (const h of battle.hits) {
+    const a = 1 - h.life, sway = Math.sin(h.life * 8) * 6, hy = GROUND - 210 - h.life * 60;
+    if (h.kind === 'dodge') text('闪避', SW / 2 + h.x + sway, hy, 20, 'rgba(170,170,180,' + a + ')', 'center', true);
+    else if (h.kind === 'heal') text('+' + h.v, SW / 2 + h.x, hy, 22, 'rgba(74,222,128,' + a + ')', 'center', true);
+    else { const col = h.crit ? 'rgba(255,205,60,' + a + ')' : 'rgba(255,95,95,' + a + ')'; text('-' + h.v, SW / 2 + h.x + sway, hy, h.crit ? 34 : 24, col, 'center', true); }
+  }
+  if (battle.done) {
+    const w = battle.res.win; const loot = [];
+    if (w) {
+      battle.res.equips.forEach(id => loot.push(['⚔ ' + (EQUIP_NAME[id] || '装备#' + id), '#8ac4ff']));
+      battle.res.pets.forEach(id => loot.push(['🐾 ' + (PET_NAME[id] || '灵宠#' + id), '#ffd0a0']));
+      battle.res.rewards.forEach(r => loot.push([(r.id === 1 ? '铜钱' : r.id === 2 ? '修为' : '材料') + ' × ' + r.c, '#ffe9b0']));
+      if (!loot.length) loot.push(['本次未掉落，再接再厉', '#9ab']);
+    } else loot.push(['战力不足，强化装备 / 升级灵宠后再战', '#ff9b9b']);
+    const ph = Math.min(SH - 130, 168 + loot.length * 26), py = SH - 44 - ph;
+    panel(15, py, SW - 30, ph, 'rgba(10,20,35,0.95)', 16);
+    text(w ? '⚔ 战斗胜利' : '💀 战斗失败', SW / 2, py + 34, 22, w ? '#ffd76a' : '#ff7b7b', 'center', true);
+    text('★'.repeat(battle.res.star) + '☆'.repeat(3 - battle.res.star), SW / 2, py + 58, 20, '#ffc53d', 'center');
+    if (w) text('— 战利品 —', SW / 2, py + 82, 12, '#9ab', 'center');
+    loot.forEach(([s, c], i) => text(s, SW / 2, py + 104 + i * 24, 15, c, 'center'));
+    panel(SW / 2 - 60, py + ph - 46, 120, 40, 'rgba(37,99,235,0.95)', 20);
+    text('返回', SW / 2, py + ph - 20, 16, '#fff', 'center', true);
+  }
+  ctx.restore();
+}
+
+function renderStages() {
+  draw('bg', 0, 0, SW, SH);
+  ctx.fillStyle = 'rgba(10,22,40,0.55)'; ctx.fillRect(0, 0, SW, SH);
+  renderAmbient('#ffe9a0');
+  text('秘境关卡', SW / 2, 56, 24, '#ffd76a', 'center', true);
+  text('提升战力，逐关推进', SW / 2, 82, 12, '#9ab', 'center');
+  STAGES.forEach((s, i) => {
+    const cx = 20, cy = 108 + i * 122, cw = SW - 40, ch = 108;
+    const unlocked = stageUnlocked(s), cleared = stageProgress.cleared.indexOf(s.id) >= 0;
+    const star = stageProgress.stars[s.id] || 0;
+    panel(cx, cy, cw, ch, unlocked ? 'rgba(15,25,45,0.9)' : 'rgba(10,14,24,0.97)', 14);
+    if (!unlocked) { ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1; ctx.strokeRect(cx + 0.5, cy + 0.5, cw - 1, ch - 1); }
+    else if (cleared) { ctx.strokeStyle = 'rgba(74,222,128,0.55)'; ctx.lineWidth = 2; ctx.strokeRect(cx, cy, cw, ch); }
+    else { ctx.strokeStyle = 'rgba(255,213,90,0.7)'; ctx.lineWidth = 2; ctx.strokeRect(cx, cy, cw, ch); }
+    text(s.icon, cx + 34, cy + ch / 2 + 8, 34, unlocked ? '#fff' : '#555', 'center');
+    text(s.name, cx + 76, cy + 36, 18, unlocked ? '#fff' : '#777', 'left', true);
+    const bad = s.boss ? 'BOSS' : '普通', bc = s.boss ? 'rgba(220,38,38,0.92)' : 'rgba(37,99,235,0.92)';
+    ctx.fillStyle = bc; ctx.beginPath(); const br = 6; const bx = cx + 76, by = cy + 46, bw2 = 44, bh2 = 18; ctx.moveTo(bx + br, by); ctx.arcTo(bx + bw2, by, bx + bw2, by + bh2, br); ctx.arcTo(bx + bw2, by + bh2, bx, by + bh2, br); ctx.arcTo(bx, by + bh2, bx, by, br); ctx.arcTo(bx, by, bx + bw2, by, br); ctx.fill();
+    text(bad, bx + bw2 / 2, by + 14, 11, '#fff', 'center', true);
+    text('推荐战力 ' + s.power, cx + 76, cy + 84, 12, '#9ab', 'left');
+    if (!unlocked) text('🔒 未解锁', cx + cw - 16, cy + ch / 2 + 6, 14, '#777', 'right');
+    else if (cleared) text('★'.repeat(star) + '☆'.repeat(3 - star), cx + cw - 16, cy + ch / 2 + 6, 16, '#ffc53d', 'right');
+    else text('挑战 →', cx + cw - 16, cy + ch / 2 + 6, 14, '#ffd76a', 'right', true);
+  });
+  btn({ x: 15, y: SH - 60, w: 90, h: 44, label: '返回' });
+}
+
+function renderEquip() {
+  draw('bg', 0, 0, SW, SH);
+  ctx.fillStyle = 'rgba(10,22,40,0.6)'; ctx.fillRect(0, 0, SW, SH);
+  renderAmbient('#ffe9a0');
+  text('装备', SW / 2, 46, 22, '#ffd76a', 'center', true);
+  btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
+  const cw = 82, ch = 68, gx = 6, gy = 6, ox = 15, oy = 60;
+  for (let i = 0; i < 8; i++) {
+    const px = ox + (i % 4) * (cw + gx), py = oy + Math.floor(i / 4) * (ch + gy);
+    const pos = POS_LIST[i];
+    const eq = equipData.find(q => q.pos === pos);
+    panel(px, py, cw, ch, eq ? 'rgba(25,42,70,0.95)' : 'rgba(15,22,35,0.75)', 10);
+    if (eq) { ctx.strokeStyle = 'rgba(74,222,128,0.5)'; ctx.lineWidth = 1.5; ctx.strokeRect(px, py, cw, ch); }
+    text(POS_NAME[pos], px + cw / 2, py + 15, 11, '#9ab', 'center');
+    if (eq) {
+      const icon = pos === 1 ? 'iconWeapon' : pos === 3 ? 'iconArmor' : null;
+      if (icon) {
+        const ft2 = Date.now() * 0.003;
+        const fy = Math.sin(ft2 + i) * 2, glow = 0.5 + 0.3 * Math.sin(ft2 * 1.5 + i);
+        ctx.globalAlpha = glow; ctx.globalCompositeOperation = 'lighter';
+        draw(icon, px + cw / 2 - 16, py + 18 + fy, 32, 32);
+        ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+        draw(icon, px + cw / 2 - 16, py + 18 + fy, 32, 32);
+        text(EQUIP_NAME[eq.id] || '装备', px + cw / 2, py + 60, 10, '#ffe9b0', 'center', true);
+      } else {
+        text(EQUIP_NAME[eq.id] || '装备', px + cw / 2, py + 40, 12, '#ffe9b0', 'center', true);
+        text('+' + eq.s + '/' + eq.r, px + cw / 2, py + 56, 10, '#7cc4ff', 'center');
+      }
+    } else text('空', px + cw / 2, py + 42, 13, '#555', 'center');
+  }
+  const bag = equipData.filter(q => !q.pos);
+  text('背包（' + bag.length + ' 件，点击选中）', ox, 222, 12, '#ffd76a', 'left', true);
+  const ly = 234, lh = 36, lg = 3;
+  bag.slice(0, 6).forEach((q, i) => {
+    const py = ly + i * (lh + lg);
+    const sel = selIdx === i;
+    panel(ox, py, SW - 30, lh, sel ? 'rgba(37,99,235,0.55)' : 'rgba(15,25,45,0.85)', 9);
+    if (sel) { ctx.strokeStyle = 'rgba(255,213,90,0.85)'; ctx.lineWidth = 2; ctx.strokeRect(ox, py, SW - 30, lh); }
+    text(EQUIP_NAME[q.id] || '装备#' + q.id, ox + 12, py + 17, 13, '#fff', 'left', true);
+    text('+' + q.s + '/' + q.r + ' 评' + q.score, ox + 12, py + 32, 10, '#9ab', 'left');
+    text(POS_NAME[EQUIP_POS[q.id]] || '', SW - 42, py + 24, 11, '#7cc4ff', 'right');
+  });
+  const sel = bag[selIdx];
+  if (sel) {
+    const b = EQUIP_BASE[sel.id] || { atk: 0, def: 0, hp: 0 };
+    let atk = b.atk + sel.s * 5 + sel.r * 3, def = b.def, hp = b.hp;
+    for (const af of sel.affixes) { if (AFFIX_ATTR[af.aid] === '攻击') atk += af.av; else if (AFFIX_ATTR[af.aid] === '防御') def += af.av; else if (AFFIX_ATTR[af.aid] === '生命') hp += af.av; }
+    const affLines = sel.affixes.map(af => '·' + (AFFIX_ATTR[af.aid] || '属性') + '+' + af.av).join('  ');
+    panel(ox, 476, SW - 30, 92, 'rgba(15,25,45,0.92)', 12);
+    text(EQUIP_NAME[sel.id] + '（' + (POS_NAME[EQUIP_POS[sel.id]] || '') + '）', ox + 14, 498, 14, '#ffe9b0', 'left', true);
+    text('攻击+' + atk + '  防御+' + def + '  生命+' + hp, ox + 14, 520, 13, '#fff', 'left');
+    text(affLines || '无词条', ox + 14, 540, 11, '#7cc4ff', 'left');
+    text('强化+' + sel.s + '  精炼+' + sel.r + '  评分' + sel.score, ox + 14, 558, 11, '#9ab', 'left');
+    btn({ x: ox, y: 578, w: 108, h: 44, label: '穿戴' });
+    btn({ x: ox + 116, y: 578, w: 108, h: 44, label: '强化' });
+    btn({ x: ox + 232, y: 578, w: 128, h: 44, label: '精炼' });
+    btn({ x: ox, y: 630, w: SW - 30, h: 42, label: '⚔ 一键穿戴最强' });
+  } else {
+    btn({ x: ox, y: 480, w: SW - 30, h: 44, label: '⚔ 一键穿戴最强' });
+  }
+}
+
+function render() {
+  if (scene === 'battle') renderBattle();
+  else if (scene === 'stages') renderStages();
+  else if (scene === 'equip') renderEquip();
+  else renderHome();
+  if (fade < 1) { ctx.fillStyle = 'rgba(0,0,0,' + (1 - fade) + ')'; ctx.fillRect(0, 0, SW, SH); }
+}
+
+function update(dt) {
+  for (const p of ambient) { p.y -= p.sp * dt; p.x += Math.sin((p.y + p.ph) * 0.02) * 0.4; if (p.y < -10) { p.y = SH + 10; p.x = Math.random() * SW; } }
+  fade = Math.min(1, fade + dt * 3);
+  if (shake > 0) shake = Math.max(0, shake - dt * 10);
+  if (arcLife > 0) arcLife = Math.max(0, arcLife - dt);
+  if (flashHero > 0) flashHero -= dt;
+  if (flashMonster > 0) flashMonster -= dt;
+  if (flashPet > 0) flashPet -= dt;
+  for (const p of particles) { p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; p.vx *= 0.9; }
+  particles = particles.filter(p => p.life < p.max);
+  for (const s of slashes) s.life += dt;
+  slashes = slashes.filter(s => s.life < s.max);
+  if (scene !== 'battle' || !battle) return;
+  battle.t += dt;
+  if (!battle.done && battle.t > 0.4 + battle.pushed * 0.45 && battle.pushed < battle.res.actions.length) {
+    const act = battle.res.actions[battle.pushed];
+    const toMonster = act.atk !== 3;
+    const targetIsPet = act.tgt === 2;
+    if (act.dodge) { battle.hits.push({ kind: 'dodge', x: toMonster ? -15 : 15, life: 0 }); }
+    else if (act.heal > 0) { battle.hits.push({ kind: 'heal', v: act.heal, x: 0, life: 0 }); }
+    else {
+      battle.hits.push({ kind: 'dmg', v: act.dmg, x: toMonster ? -15 : 15, life: 0, crit: act.crit });
+      const mcx2 = battle.stage && battle.stage.boss ? SW - 95 : SW - 99;
+      const fx = toMonster ? (act.atk === 2 ? 168 : 99) : mcx2;
+      const tx = toMonster ? mcx2 : (targetIsPet ? 168 : 99);
+      slashes.push({ x: fx, y: GROUND - 130, dx: tx - fx, life: 0, max: 0.2, crit: act.crit });
+      spawn(tx, GROUND - 90, act.crit ? '#ffcc33' : '#ff6a00');
+      if (toMonster) flashMonster = 0.22; else if (targetIsPet) flashPet = 0.22; else flashHero = 0.22;
+      shake = act.crit ? 12 : 7; arcLife = 0.35;
+    }
+    battle.pushed++;
+  }
+  for (const h of battle.hits) h.life += dt * 0.6;
+  battle.hits = battle.hits.filter(h => h.life < 1);
+  if (!battle.done && battle.pushed >= battle.res.actions.length && battle.t > 0.4 + battle.pushed * 0.45 + 0.5) battle.done = true;
+}
+
+canvas.addEventListener('pointerdown', (e) => {
+  const r = canvas.getBoundingClientRect();
+  const x = (e.clientX - r.left) * (SW / r.width), y = (e.clientY - r.top) * (SH / r.height);
+  if (scene === 'stages') {
+    if (x >= 15 && x <= 105 && y >= SH - 60 && y <= SH - 16) { scene = 'home'; fade = 0; return; }
+    STAGES.forEach((s, i) => {
+      const cy = 108 + i * 122, ch = 108;
+      if (x >= 20 && x <= SW - 20 && y >= cy && y <= cy + ch && stageUnlocked(s)) { scene = 'battle'; fade = 0; battle = { t: 0, pushed: 0, hits: [], done: false, hasPet: true, stage: s, res: battle.res }; }
+    });
+    return;
+  }
+  if (scene === 'battle') { if (battle && battle.done) { scene = 'home'; fade = 0; } return; }
+  for (const b of buttons) { if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { if (b.label === '战斗') { scene = 'stages'; fade = 0; } return; } }
+});
+
+let last = Date.now();
+function loop() { const now = Date.now(); update((now - last) / 1000); last = now; render(); requestAnimationFrame(loop); }
+layout(); loop();
+window.__game = { toBattle: () => { scene = 'battle'; fade = 0; battle = { t: 0, pushed: 0, hits: [], done: false, hasPet: true, stage: STAGES[0], res: battle.res }; }, toBoss: () => { scene = 'battle'; fade = 0; battle = { t: 0, pushed: 0, hits: [], done: false, hasPet: true, stage: STAGES[2], res: battle.res }; }, toBlood: () => { scene = 'battle'; fade = 0; battle = { t: 0, pushed: 0, hits: [], done: false, hasPet: true, stage: STAGES[3], res: battle.res }; }, toStages: () => { scene = 'stages'; fade = 0; }, toEquip: () => { scene = 'equip'; fade = 0; }, toHome: () => { scene = 'home'; fade = 0; } };
+</script>
+</body>
+</html>

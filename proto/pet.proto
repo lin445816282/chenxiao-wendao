@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package chenxiao.pet;
+
+option go_package = "chenxiao/proto/pet;pet";
+
+import "common.proto";
+
+// 灵宠实例
+message PetInfo {
+  int64 pet_uid = 1;
+  int32 pet_id = 2;   // 灵宠配置 ID
+  int32 level = 3;
+  int64 exp = 4;
+  int32 star = 5;     // 星级（进化）
+  map<int32, int32> skill_levels = 6; // skillId -> level
+  bool is_combat = 7; // 是否出战助战
+}
+
+// 灵宠列表
+message C2SPetList {}
+message S2CPetList {
+  common.Result result = 1;
+  repeated PetInfo pets = 2;
+}
+
+// 出战 / 休息
+message C2SPetSetCombat {
+  int64 pet_uid = 1;
+  bool combat = 2; // true=出战 false=休息
+}
+message S2CPetSetCombat {
+  common.Result result = 1;
+  repeated PetInfo changed = 2;
+}
+
+// 升级
+message C2SPetUpgrade {
+  int64 pet_uid = 1;
+}
+message S2CPetUpgrade {
+  common.Result result = 1;
+  PetInfo pet = 2;
+}
+
+// 进化（升星）
+message C2SPetEvolve {
+  int64 pet_uid = 1;
+}
+message S2CPetEvolve {
+  common.Result result = 1;
+  PetInfo pet = 2;
+}

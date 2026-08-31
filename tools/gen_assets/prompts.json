@@ -1,0 +1,168 @@
+{
+  "style_prefix": "8k,超高清,电影级光影,仙侠水墨国风,柔和体积光,细节丰富,极致材质质感,构图完整",
+  "character_suffix": "细腻皮肤,精致古风服饰,金银刺绣纹样,完整全身立绘,纯色干净背景,人物居中",
+  "negative_prompt": "畸形,多手指,缺手指,扭曲肢体,五官崩坏,模糊,水印,文字,签名,噪点,丑陋,变形,重复肢体,黑白,灰暗",
+  "items": [
+    {
+      "id": "worldview_overview",
+      "type": "text",
+      "title": "世界观总纲",
+      "prompt": "你是资深仙侠游戏文案策划。为原创挂机手游《尘霄问道》撰写世界观总纲，要求：1) 完全原创，不得抄袭任何现有IP（如青云诀、诛仙、凡人修仙传等）；2) 设定一个原创世界名与核心冲突；3) 明确修炼体系名称与主线目标；4) 控制在300字内，语言凝练有仙侠味。直接输出正文，不要小标题、不要解释。",
+      "output": "output/text/worldview_overview.md"
+    },
+    {
+      "id": "realms",
+      "type": "text",
+      "title": "修炼境界体系",
+      "prompt": "为原创仙侠游戏《尘霄问道》设计一套原创修炼境界体系，共8阶，从低到高。要求：每阶给一个四字以内名称 + 一句10字内描述；境界名需原创、不与他人重复，可用尘/霄/玄/苍/天/道等字，但不要直接照搬炼气/筑基/金丹/元婴/化神。输出纯文本列表，每行'名称：描述'。",
+      "output": "output/text/realms.md"
+    },
+    {
+      "id": "sects",
+      "type": "text",
+      "title": "宗门势力",
+      "prompt": "为原创仙侠游戏《尘霄问道》设计6个原创宗门/势力。要求：每个给名称(2-4字) + 一句15字内设定；定位需有区分度(剑修/丹修/阵修/魔道/妖族/散修等)。避免与青云门/蜀山/昆仑/峨眉/天音寺等常见名重复。输出纯文本，每行一个。",
+      "output": "output/text/sects.md"
+    },
+    {
+      "id": "pets",
+      "type": "text",
+      "title": "灵宠",
+      "prompt": "为原创仙侠游戏《尘霄问道》设计8只原创灵宠。要求：每只给 名称(2-4字) + 原型(如灵狐/玄龟/青鸾) + 战斗定位(输出/辅助/坦克/治疗) + 一句15字内描述。避免与常见神话形象撞名。输出纯文本列表，每行'名称|原型|定位|描述'。",
+      "output": "output/text/pets.md"
+    },
+    {
+      "id": "equip_names",
+      "type": "text",
+      "title": "装备命名",
+      "prompt": "为原创仙侠游戏《尘霄问道》设计装备命名表。部位：武器/头饰/上衣/下装/鞋子/项链/戒指/手镯；品阶5档：凡品/灵品/玄品/地品/天品。要求：每个部位×品阶给一个原创名称(2-4字)，带仙侠韵味，避免烂大街。输出纯文本，按'部位-品阶：名称'分行。",
+      "output": "output/text/equip_names.md"
+    },
+    {
+      "id": "materials",
+      "type": "text",
+      "title": "材料道具",
+      "prompt": "为原创仙侠游戏《尘霄问道》设计20种原创材料/道具名称。类型覆盖：强化石、精炼材料、灵宠升级丹、灵宠碎片、铜钱兑换物、恢复丹药等。每个给 名称(2-4字)+用途(5字内)。输出纯文本，每行'名称：用途'。",
+      "output": "output/text/materials.md"
+    },
+    {
+      "id": "stages",
+      "type": "text",
+      "title": "秘境关卡命名",
+      "prompt": "为原创仙侠游戏《尘霄问道》设计秘境关卡命名：普通关卡10个、精英关卡5个、BOSS关卡5个。要求：名称(2-4字)带仙侠意境、由浅入深有层次感，避免与其他游戏重复。输出纯文本，分三组，每组先标一行'【普通】/【精英】/【BOSS】'。",
+      "output": "output/text/stages.md"
+    },
+    {
+      "id": "intro_script",
+      "type": "text",
+      "title": "开场剧情文案",
+      "prompt": "为原创仙侠挂机游戏《尘霄问道》写一段开场剧情引导文案(150字内)。主角是一名散修，误入上古秘境开启问道之旅。要求：原创、有代入感、点到为止不拖沓，适合作为新手引导过场文字。直接输出正文。",
+      "output": "output/text/intro_script.md"
+    },
+    {
+      "id": "hero_male",
+      "type": "image",
+      "title": "主角立绘-男",
+      "character": true,
+      "prompt": "一位年轻男性修仙者，白衣青衫，背负长剑，长发束起，身姿挺拔，衣袂飘飘，眼神坚毅，站姿全身像",
+      "size": "1440x2560",
+      "output": "output/images/hero_male.jpg"
+    },
+    {
+      "id": "hero_female",
+      "type": "image",
+      "title": "主角立绘-女",
+      "character": true,
+      "prompt": "一位年轻女性修仙者，淡青仙裙，飘逸纱裙，手持长剑，青丝如瀑，气质清冷出尘，站姿全身像",
+      "size": "1440x2560",
+      "output": "output/images/hero_female.jpg"
+    },
+    {
+      "id": "pet_linghu",
+      "type": "image",
+      "title": "灵宠-灵狐",
+      "character": true,
+      "prompt": "一只灵狐幼兽，通体雪白，尾尖有灵光，眼神灵动，蹲坐姿态，仙气缭绕，萌系，居中构图",
+      "size": "1920x1920",
+      "output": "output/images/pet_linghu.jpg"
+    },
+    {
+      "id": "pet_xuanwu",
+      "type": "image",
+      "title": "灵宠-玄武幼兽",
+      "character": true,
+      "prompt": "一只玄武幼兽，龟蛇相缠，青绿鳞甲，憨态可掬，背有卦纹，仙气，居中构图",
+      "size": "1920x1920",
+      "output": "output/images/pet_xuanwu.jpg"
+    },
+    {
+      "id": "monster_basic",
+      "type": "image",
+      "title": "普通小怪",
+      "character": true,
+      "prompt": "山野精怪小妖，青面獠牙但略显呆萌，手持木棍，半人形，适合做挂机小怪，居中构图",
+      "size": "1920x1920",
+      "output": "output/images/monster_basic.jpg"
+    },
+    {
+      "id": "monster_elite",
+      "type": "image",
+      "title": "精英怪",
+      "character": true,
+      "prompt": "精英妖兽，体型较大，通体赤红鳞甲，双目如炬，气势凶悍，人形妖修，居中构图",
+      "size": "1920x1920",
+      "output": "output/images/monster_elite.jpg"
+    },
+    {
+      "id": "boss",
+      "type": "image",
+      "title": "BOSS-魔道大能",
+      "character": true,
+      "prompt": "魔道大能BOSS，黑袍银发，周身黑气翻涌，手持骨杖，压迫感强，背景幽暗洞府，全身像",
+      "size": "1440x2560",
+      "output": "output/images/boss.jpg"
+    },
+    {
+      "id": "scene_hang",
+      "type": "image",
+      "title": "场景-挂机山门",
+      "prompt": "仙家门派山门远景，云雾缭绕的群山，飞瀑流泉，古松苍劲，亭台楼阁，横版场景，适合游戏背景",
+      "size": "2560x1440",
+      "output": "output/images/scene_hang.jpg"
+    },
+    {
+      "id": "scene_dungeon",
+      "type": "image",
+      "title": "场景-秘境洞府",
+      "prompt": "上古秘境洞府内部，幽深石洞，钟乳石，漂浮的灵石，神秘符纹发光，横版场景，适合游戏背景",
+      "size": "2560x1440",
+      "output": "output/images/scene_dungeon.jpg"
+    },
+    {
+      "id": "icon_weapon",
+      "type": "image",
+      "title": "图标-仙剑",
+      "note": "Seedream 对精细 UI 图标生成效果一般，建议后期 PS 精修",
+      "prompt": "一柄仙剑游戏图标，剑身泛着青蓝灵光，居中构图，白底，图标感强",
+      "size": "1920x1920",
+      "output": "output/images/icon_weapon.jpg"
+    },
+    {
+      "id": "icon_armor",
+      "type": "image",
+      "title": "图标-护甲",
+      "note": "Seedream 对精细 UI 图标生成效果一般，建议后期 PS 精修",
+      "prompt": "一件仙侠铠甲护肩游戏图标，鎏金镶边，居中构图，白底，图标感强",
+      "size": "1920x1920",
+      "output": "output/images/icon_armor.jpg"
+    },
+    {
+      "id": "login_bg",
+      "type": "image",
+      "title": "登录图",
+      "prompt": "仙侠登录页背景，竖版，云雾仙山，一轮明月，御剑而行的剪影，大留白，适合放UI按钮",
+      "size": "1440x2560",
+      "output": "output/images/login_bg.jpg"
+    }
+  ]
+}

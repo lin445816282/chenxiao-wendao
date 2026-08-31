@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package chenxiao.common;
+
+option go_package = "chenxiao/proto/common;common";
+
+// ============================================================
+// 错误码
+// 区间规划：1xxx 登录/角色  2xxx 资源  3xxx 装备  4xxx 灵宠
+//           5xxx 关卡  6xxx 邮件  7xxx 广告
+// ============================================================
+enum ErrorCode {
+  OK = 0;
+
+  // ---- 通用 ----
+  ERR_INTERNAL = 1;          // 内部错误
+  ERR_INVALID_PARAM = 2;     // 参数非法
+  ERR_NOT_LOGIN = 3;         // 未登录
+  ERR_TOKEN_EXPIRED = 4;     // 会话过期
+  ERR_KICKED = 5;            // 被顶号/踢下线
+  ERR_MAINTENANCE = 6;       // 停服维护
+  ERR_RATE_LIMIT = 7;        // 请求过频
+
+  // ---- 登录/角色 1xxx ----
+  ERR_LOGIN_CODE_INVALID = 1001; // code 换取 openid 失败
+  ERR_ROLE_EXISTS = 1002;        // 已创建角色
+  ERR_ROLE_NOT_EXISTS = 1003;    // 角色不存在
+  ERR_NAME_INVALID = 1004;       // 昵称非法(敏感词/长度)
+
+  // ---- 资源 2xxx ----
+  ERR_COPPER_NOT_ENOUGH = 2001;    // 铜钱不足
+  ERR_MATERIAL_NOT_ENOUGH = 2002;  // 材料不足
+
+  // ---- 装备 3xxx ----
+  ERR_EQUIP_NOT_FOUND = 3001;      // 装备不存在
+  ERR_EQUIP_POS_INVALID = 3002;    // 穿戴部位非法
+  ERR_STRENGTHEN_LEVEL_MAX = 3003; // 强化已满级
+
+  // ---- 灵宠 4xxx ----
+  ERR_PET_NOT_FOUND = 4001;  // 灵宠不存在
+  ERR_PET_MAX = 4002;        // 灵宠数量上限
+
+  // ---- 关卡 5xxx ----
+  ERR_STAGE_LOCKED = 5001;       // 关卡未解锁
+  ERR_STAGE_TIMES_LIMIT = 5002;  // 挑战次数已耗尽
+
+  // ---- 邮件 6xxx ----
+  ERR_MAIL_NOT_FOUND = 6001;        // 邮件不存在
+  ERR_MAIL_ALREADY_CLAIMED = 6002;  // 附件已领取
+
+  // ---- 广告 7xxx ----
+  ERR_AD_NOT_COMPLETED = 7001; // 广告未完成
+  ERR_AD_LIMIT = 7002;         // 今日次数已满
+  ERR_AD_DUPLICATE = 7003;     // 重复上报(biz_id 已用)
+}
+
+// ============================================================
+// 消息 ID 注册表
+// 约定：C2S 为偶数，S2C 为其 +1；服务端按 MsgId 路由到对应 handler
+// ============================================================
+enum MsgId {
+  MSG_ID_NONE = 0;
+
+  // ---- 心跳/通用 1-99 ----
+  C2S_HEARTBEAT = 1;
+  S2C_HEARTBEAT = 2;
+  S2C_KICK = 3;
+
+  // ---- 登录/角色 1000-1099 ----
+  C2S_LOGIN = 1000;
+  S2C_LOGIN = 1001;
+  C2S_CREATE_ROLE = 1002;
+  S2C_CREATE_ROLE = 1003;
+  S2C_ROLE_BRIEF = 1004; // 服务端推送的角色快照
+
+  // ---- 挂机/离线 2000-2099 ----
+  C2S_OFFLINE_REWARD_QUERY = 2000;
+  S2C_OFFLINE_REWARD_QUERY = 2001;
+  C2S_OFFLINE_REWARD_CLAIM = 2002;
+  S2C_OFFLINE_REWARD_CLAIM = 2003;
+  C2S_HANG_REWARD_QUERY = 2004; // 在线挂机收益查询
+  S2C_HANG_REWARD_QUERY = 2005;
+  C2S_HANG_REWARD_CLAIM = 2006;
+  S2C_HANG_REWARD_CLAIM = 2007;
+
+  // ---- 秘境/战斗 3000-3099 ----
+  C2S_START_STAGE = 3000;
+  S2C_START_STAGE = 3001;
+  C2S_SWEEP_STAGE = 3002; // 扫荡
+  S2C_SWEEP_STAGE = 3003;
+
+  // ---- 装备 4000-4099 ----
+  C2S_EQUIP_LIST = 4000;
+  S2C_EQUIP_LIST = 4001;
+  C2S_EQUIP_WEAR = 4002;
+  S2C_EQUIP_WEAR = 4003;
+  C2S_EQUIP_STRENGTHEN = 4004;
+  S2C_EQUIP_STRENGTHEN = 4005;
+  C2S_EQUIP_REFINE = 4006;
+  S2C_EQUIP_REFINE = 4007;
+  C2S_EQUIP_DECOMPOSE = 4008;
+  S2C_EQUIP_DECOMPOSE = 4009;
+
+  // ---- 灵宠 5000-5099 ----
+  C2S_PET_LIST = 5000;
+  S2C_PET_LIST = 5001;
+  C2S_PET_SET_COMBAT = 5002;
+  S2C_PET_SET_COMBAT = 5003;
+  C2S_PET_UPGRADE = 5004;
+  S2C_PET_UPGRADE = 5005;
+  C2S_PET_EVOLVE = 5006;
+  S2C_PET_EVOLVE = 5007;
+
+  // ---- 背包 6000-6099 ----
+  C2S_BAG_LIST = 6000;
+  S2C_BAG_LIST = 6001;
+  C2S_BAG_USE_ITEM = 6002;
+  S2C_BAG_USE_ITEM = 6003;
+
+  // ---- 邮件 7000-7099 ----
+  C2S_MAIL_LIST = 7000;
+  S2C_MAIL_LIST = 7001;
+  C2S_MAIL_READ = 7002;
+  S2C_MAIL_READ = 7003;
+  C2S_MAIL_CLAIM = 7004;
+  S2C_MAIL_CLAIM = 7005;
+
+  // ---- 排行榜 8000-8099 ----
+  C2S_RANK_QUERY = 8000;
+  S2C_RANK_QUERY = 8001;
+
+  // ---- 广告 9000-9099 ----
+  C2S_AD_REQUEST = 9000; // 请求观看(服务端发 biz_id)
+  S2C_AD_REQUEST = 9001;
+  C2S_AD_REPORT = 9002;  // 观看完成上报(服务端向微信校验)
+  S2C_AD_REPORT = 9003;
+}
+
+// ============================================================
+// 公共结构
+// ============================================================
+
+// 通用响应头（嵌入每个 S2C 消息的第一个字段）
+message Result {
+  ErrorCode code = 1;
+  string msg = 2; // 人类可读提示，仅用于日志/调试，正式展示由客户端本地化
+}
+
+// 属性键值对（属性 ID 由配置表定义）
+message AttrPair {
+  int32 attr_id = 1; // 属性 ID
+  int64 value = 2;   // 数值
+}
+
+// 货币/物品奖励条目
+// item_id = 1 表示铜钱，2 表示修为，其余为物品配置 ID
+message RewardItem {
+  int32 item_id = 1;
+  int64 count = 2;
+}
+
+// 装备随机词条（概率公示页引用同一配置表，保证一致）
+message EquipAffix {
+  int32 affix_id = 1; // 词条 ID
+  int32 value = 2;    // 数值
+}
+
+// 心跳
+message C2SHeartbeat {
+  int64 ts = 1; // 客户端时间戳
+}
+message S2CHeartbeat {
+  int64 server_ts = 1; // 服务端时间戳（用于客户端校时）
+}
+
+// 被踢下线（顶号/封禁/维护）
+message S2CKick {
+  ErrorCode reason = 1;
+  string msg = 2;
+}

@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "entries": [
+      {
+        "item_id": 2001,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 50,
+        "count_min": 1,
+        "count_max": 3
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "entries": [
+      {
+        "item_id": 2002,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "entries": [
+      {
+        "item_id": 2002,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 3001,
+        "weight": 20,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+  "text_model": "doubao-1-5-pro-32k-250115",
+  "image_model": "doubao-seedream-5-0-260128",
+  "steps": 30,
+  "cfg_scale": 7.5,
+  "default_size": "1920x1920",
+  "watermark": false,
+  "seed": null,
+  "api_key_env": "ARK_API_KEY",
+  "api_key": ""
+}

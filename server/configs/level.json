@@ -1,0 +1,162 @@
+[
+  {
+    "band": 1,
+    "level_min": 1,
+    "level_max": 10,
+    "realm": "炼气期",
+    "stage_ids": [
+      1001
+    ],
+    "pet_ids": [
+      3001
+    ],
+    "equip_ids": [
+      2001,
+      2002
+    ]
+  },
+  {
+    "band": 2,
+    "level_min": 11,
+    "level_max": 20,
+    "realm": "筑基期",
+    "stage_ids": [
+      1002
+    ],
+    "pet_ids": [
+      3002
+    ],
+    "equip_ids": [
+      2003,
+      2004
+    ]
+  },
+  {
+    "band": 3,
+    "level_min": 21,
+    "level_max": 30,
+    "realm": "金丹期",
+    "stage_ids": [
+      1003
+    ],
+    "pet_ids": [
+      3003
+    ],
+    "equip_ids": [
+      2005,
+      2006
+    ]
+  },
+  {
+    "band": 4,
+    "level_min": 31,
+    "level_max": 40,
+    "realm": "元婴期",
+    "stage_ids": [
+      1004
+    ],
+    "pet_ids": [
+      3004
+    ],
+    "equip_ids": [
+      2007,
+      2008
+    ]
+  },
+  {
+    "band": 5,
+    "level_min": 41,
+    "level_max": 50,
+    "realm": "化神期",
+    "stage_ids": [
+      1005
+    ],
+    "pet_ids": [
+      3005
+    ],
+    "equip_ids": [
+      2009,
+      2010
+    ]
+  },
+  {
+    "band": 6,
+    "level_min": 51,
+    "level_max": 60,
+    "realm": "炼虚期",
+    "stage_ids": [
+      1006
+    ],
+    "pet_ids": [
+      3006
+    ],
+    "equip_ids": [
+      2011,
+      2012
+    ]
+  },
+  {
+    "band": 7,
+    "level_min": 61,
+    "level_max": 70,
+    "realm": "合体期",
+    "stage_ids": [
+      1007
+    ],
+    "pet_ids": [
+      3007
+    ],
+    "equip_ids": [
+      2013,
+      2014
+    ]
+  },
+  {
+    "band": 8,
+    "level_min": 71,
+    "level_max": 80,
+    "realm": "大乘期",
+    "stage_ids": [
+      1008
+    ],
+    "pet_ids": [
+      3008
+    ],
+    "equip_ids": [
+      2015,
+      2016
+    ]
+  },
+  {
+    "band": 9,
+    "level_min": 81,
+    "level_max": 90,
+    "realm": "渡劫期",
+    "stage_ids": [
+      1009
+    ],
+    "pet_ids": [
+      3009
+    ],
+    "equip_ids": [
+      2017,
+      2018
+    ]
+  },
+  {
+    "band": 10,
+    "level_min": 91,
+    "level_max": 100,
+    "realm": "真仙境",
+    "stage_ids": [
+      1010
+    ],
+    "pet_ids": [
+      3010
+    ],
+    "equip_ids": [
+      2019,
+      2020
+    ]
+  }
+]

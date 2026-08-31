@@ -59,8 +59,11 @@ func UpdateLastSignDay(db *sql.DB, playerID int64, day string) error {
 	return err
 }
 
+// MaxPlayerLevel 角色等级上限（每 10 级一阶，共 10 阶）。
+const MaxPlayerLevel = int32(100)
+
 // AddResources 增加修为/铜钱，修为达阈值自动升级，返回最新 (exp, copper)。
-// 升级规则：升到下一级所需修为 = 当前等级 × 1000。
+// 升级规则：升到下一级所需修为 = 当前等级 × 1000；等级上限 100。
 func AddResources(db *sql.DB, playerID, exp, copper int64) (int64, int64, error) {
 	tx, err := db.Begin()
 	if err != nil {
@@ -76,9 +79,13 @@ func AddResources(db *sql.DB, playerID, exp, copper int64) (int64, int64, error)
 	if err := tx.QueryRow(`SELECT level, exp FROM t_player WHERE id = ?`, playerID).Scan(&lv, &e); err != nil {
 		return 0, 0, err
 	}
-	for e >= int64(lv)*1000 {
+	for e >= int64(lv)*1000 && lv < MaxPlayerLevel {
 		e -= int64(lv) * 1000
 		lv++
+	}
+	// 满级后修为封顶，不再溢出
+	if lv >= MaxPlayerLevel && e > int64(lv)*1000 {
+		e = int64(lv) * 1000
 	}
 	if _, err := tx.Exec(`UPDATE t_player SET level = ?, exp = ? WHERE id = ?`, lv, e, playerID); err != nil {
 		return 0, 0, err

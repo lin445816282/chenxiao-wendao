@@ -27,6 +27,9 @@ func Load(dir string) (*ConfigSet, error) {
 	if err := loadJSON(filepath.Join(dir, "hang.json"), &cs.Hang); err != nil {
 		return nil, err
 	}
+	if err := loadJSON(filepath.Join(dir, "level.json"), &cs.LevelBands); err != nil {
+		return nil, err
+	}
 	cs.buildIndex()
 	return cs, nil
 }
@@ -59,5 +62,9 @@ func (cs *ConfigSet) buildIndex() {
 	cs.affixIdx = make(map[int32]Affix, len(cs.Affixes))
 	for _, a := range cs.Affixes {
 		cs.affixIdx[a.ID] = a
+	}
+	cs.bandIdx = make(map[int32]LevelBand, len(cs.LevelBands))
+	for _, b := range cs.LevelBands {
+		cs.bandIdx[b.Band] = b
 	}
 }

@@ -20,6 +20,7 @@ type Stage struct {
 	CopperReward    int64   `json:"copper_reward"`
 	DropTableID     int32   `json:"drop_table_id"`
 	UnlockPrevStage int32   `json:"unlock_prev_stage"` // 0=无前置
+	UnlockLevel     int32   `json:"unlock_level"`      // 达到该等级解锁
 }
 
 // Equip 装备配置。
@@ -32,6 +33,7 @@ type Equip struct {
 	AffixPool     []int32 `json:"affix_pool"` // 可随机到的词条 ID
 	MaxStrengthen int32   `json:"max_strengthen"`
 	MaxRefine     int32   `json:"max_refine"`
+	UnlockLevel   int32   `json:"unlock_level"` // 达到该等级解锁
 }
 
 // PetSkill 灵宠技能配置。
@@ -42,11 +44,23 @@ type PetSkill struct {
 
 // Pet 灵宠配置。
 type Pet struct {
-	ID        int32      `json:"id"`
-	Name      string     `json:"name"`
-	Rarity    int32      `json:"rarity"`
-	BaseAttrs []Attr     `json:"base_attrs"`
-	Skills    []PetSkill `json:"skills"`
+	ID          int32      `json:"id"`
+	Name        string     `json:"name"`
+	Rarity      int32      `json:"rarity"`
+	BaseAttrs   []Attr     `json:"base_attrs"`
+	Skills      []PetSkill `json:"skills"`
+	UnlockLevel int32      `json:"unlock_level"` // 达到该等级解锁
+}
+
+// LevelBand 等级段配置（每 10 级一阶，上限 100 级）。
+type LevelBand struct {
+	Band     int32   `json:"band"`
+	LevelMin int32   `json:"level_min"`
+	LevelMax int32   `json:"level_max"`
+	Realm    string  `json:"realm"`
+	StageIDs []int32 `json:"stage_ids"`
+	PetIDs   []int32 `json:"pet_ids"`
+	EquipIDs []int32 `json:"equip_ids"`
 }
 
 // Affix 随机词条配置（装备掉落的随机属性）。
@@ -88,12 +102,14 @@ type ConfigSet struct {
 	DropTables []DropTable `json:"drop_tables"`
 	Affixes    []Affix     `json:"affixes"`
 	Hang       Hang        `json:"hang"`
+	LevelBands []LevelBand `json:"level_bands"`
 
 	stageIdx map[int32]Stage
 	equipIdx map[int32]Equip
 	petIdx   map[int32]Pet
 	dropIdx  map[int32]DropTable
 	affixIdx map[int32]Affix
+	bandIdx  map[int32]LevelBand
 }
 
 // GetStage / GetEquip / GetPet / GetDropTable 返回配置与是否存在。
@@ -116,4 +132,23 @@ func (cs *ConfigSet) GetDropTable(id int32) (DropTable, bool) {
 func (cs *ConfigSet) GetAffix(id int32) (Affix, bool) {
 	v, ok := cs.affixIdx[id]
 	return v, ok
+}
+
+// GetLevelBand 按等级段序号返回配置。
+func (cs *ConfigSet) GetLevelBand(band int32) (LevelBand, bool) {
+	v, ok := cs.bandIdx[band]
+	return v, ok
+}
+
+// BandOfLevel 返回等级所属的段序号（1..10）。
+func (cs *ConfigSet) BandOfLevel(level int32) int32 {
+	for _, b := range cs.LevelBands {
+		if level >= b.LevelMin && level <= b.LevelMax {
+			return b.Band
+		}
+	}
+	if level > 100 {
+		return 10
+	}
+	return 1
 }

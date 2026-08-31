@@ -12,7 +12,7 @@
     "exp_reward": 100,
     "copper_reward": 200,
     "drop_table_id": 1,
-    "unlock_prev_stage": 0
+    "unlock_level": 1
   },
   {
     "id": 1002,
@@ -24,37 +24,121 @@
       104
     ],
     "boss_id": 0,
-    "exp_reward": 150,
-    "copper_reward": 300,
-    "drop_table_id": 1,
-    "unlock_prev_stage": 1001
+    "exp_reward": 160,
+    "copper_reward": 320,
+    "drop_table_id": 2,
+    "unlock_level": 11
   },
   {
-    "id": 2001,
+    "id": 1003,
     "type": 2,
-    "name": "玄灵试炼",
-    "recommend_power": 1500,
+    "name": "落星谷",
+    "recommend_power": 1200,
     "monster_ids": [
       201
     ],
-    "boss_id": 201,
-    "exp_reward": 500,
-    "copper_reward": 800,
-    "drop_table_id": 2,
-    "unlock_prev_stage": 1002
+    "boss_id": 0,
+    "exp_reward": 260,
+    "copper_reward": 520,
+    "drop_table_id": 3,
+    "unlock_level": 21
   },
   {
-    "id": 3001,
+    "id": 1004,
+    "type": 2,
+    "name": "寒潭洞",
+    "recommend_power": 2000,
+    "monster_ids": [
+      202
+    ],
+    "boss_id": 0,
+    "exp_reward": 420,
+    "copper_reward": 840,
+    "drop_table_id": 4,
+    "unlock_level": 31
+  },
+  {
+    "id": 1005,
+    "type": 2,
+    "name": "雷音寺",
+    "recommend_power": 3200,
+    "monster_ids": [
+      203
+    ],
+    "boss_id": 0,
+    "exp_reward": 680,
+    "copper_reward": 1360,
+    "drop_table_id": 5,
+    "unlock_level": 41
+  },
+  {
+    "id": 1006,
     "type": 3,
-    "name": "血魔渊",
-    "recommend_power": 2200,
+    "name": "万妖窟",
+    "recommend_power": 4800,
     "monster_ids": [
       301
     ],
     "boss_id": 301,
-    "exp_reward": 2000,
-    "copper_reward": 3000,
-    "drop_table_id": 3,
-    "unlock_prev_stage": 2001
+    "exp_reward": 1100,
+    "copper_reward": 2200,
+    "drop_table_id": 6,
+    "unlock_level": 51
+  },
+  {
+    "id": 1007,
+    "type": 3,
+    "name": "幽冥渊",
+    "recommend_power": 7000,
+    "monster_ids": [
+      302
+    ],
+    "boss_id": 302,
+    "exp_reward": 1800,
+    "copper_reward": 3600,
+    "drop_table_id": 7,
+    "unlock_level": 61
+  },
+  {
+    "id": 1008,
+    "type": 3,
+    "name": "天火崖",
+    "recommend_power": 10000,
+    "monster_ids": [
+      303
+    ],
+    "boss_id": 303,
+    "exp_reward": 2900,
+    "copper_reward": 5800,
+    "drop_table_id": 8,
+    "unlock_level": 71
+  },
+  {
+    "id": 1009,
+    "type": 3,
+    "name": "昆仑墟",
+    "recommend_power": 14000,
+    "monster_ids": [
+      304
+    ],
+    "boss_id": 304,
+    "exp_reward": 4700,
+    "copper_reward": 9400,
+    "drop_table_id": 9,
+    "unlock_level": 81
+  },
+  {
+    "id": 1010,
+    "type": 3,
+    "name": "仙帝宫",
+    "recommend_power": 20000,
+    "monster_ids": [
+      305
+    ],
+    "boss_id": 305,
+    "exp_reward": 7600,
+    "copper_reward": 15000,
+    "drop_table_id": 10,
+    "unlock_level": 91
   }
 ]

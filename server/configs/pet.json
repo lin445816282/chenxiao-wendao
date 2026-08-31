@@ -2,7 +2,7 @@
   {
     "id": 3001,
     "name": "雪灵狐",
-    "rarity": 5,
+    "rarity": 3,
     "base_attrs": [
       {
         "attr_id": 1,
@@ -14,12 +14,13 @@
         "skill_id": 4001,
         "max_level": 10
       }
-    ]
+    ],
+    "unlock_level": 1
   },
   {
     "id": 3002,
     "name": "玄龟幼兽",
-    "rarity": 4,
+    "rarity": 3,
     "base_attrs": [
       {
         "attr_id": 3,
@@ -31,6 +32,151 @@
         "skill_id": 4002,
         "max_level": 10
       }
-    ]
+    ],
+    "unlock_level": 11
+  },
+  {
+    "id": 3003,
+    "name": "赤炎狮",
+    "rarity": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 200
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4003,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 21
+  },
+  {
+    "id": 3004,
+    "name": "冰魄蝉",
+    "rarity": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 320
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4004,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 31
+  },
+  {
+    "id": 3005,
+    "name": "雷纹鹤",
+    "rarity": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 500
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4005,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 41
+  },
+  {
+    "id": 3006,
+    "name": "九幽蟒",
+    "rarity": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 780
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4006,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 51
+  },
+  {
+    "id": 3007,
+    "name": "火羽凤",
+    "rarity": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 1200
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4007,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 61
+  },
+  {
+    "id": 3008,
+    "name": "青鸾",
+    "rarity": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 2200
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4008,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 71
+  },
+  {
+    "id": 3009,
+    "name": "玄冰麒麟",
+    "rarity": 6,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 3600
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4009,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 81
+  },
+  {
+    "id": 3010,
+    "name": "混沌神龙",
+    "rarity": 6,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 5600
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": 4010,
+        "max_level": 10
+      }
+    ],
+    "unlock_level": 91
   }
 ]

@@ -15,7 +15,8 @@
       102
     ],
     "max_strengthen": 50,
-    "max_refine": 10
+    "max_refine": 10,
+    "unlock_level": 1
   },
   {
     "id": 2002,
@@ -33,6 +34,349 @@
       104
     ],
     "max_strengthen": 50,
-    "max_refine": 10
+    "max_refine": 10,
+    "unlock_level": 1
+  },
+  {
+    "id": 2003,
+    "name": "灵木杖",
+    "pos": 1,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 200
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2004,
+    "name": "云纹道袍",
+    "pos": 3,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 300
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 11
+  },
+  {
+    "id": 2005,
+    "name": "星陨剑",
+    "pos": 1,
+    "quality": 2,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 320
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
+    "id": 2006,
+    "name": "星罗法衣",
+    "pos": 3,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 480
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 21
+  },
+  {
+    "id": 2007,
+    "name": "寒霜剑",
+    "pos": 1,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 500
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2008,
+    "name": "冰蚕宝甲",
+    "pos": 3,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 750
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 31
+  },
+  {
+    "id": 2009,
+    "name": "紫电剑",
+    "pos": 1,
+    "quality": 3,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 780
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
+    "id": 2010,
+    "name": "雷纹战甲",
+    "pos": 3,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 1170
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 41
+  },
+  {
+    "id": 2011,
+    "name": "妖皇戟",
+    "pos": 1,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 1200
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2012,
+    "name": "万妖袍",
+    "pos": 3,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 1800
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 51
+  },
+  {
+    "id": 2013,
+    "name": "幽冥刃",
+    "pos": 1,
+    "quality": 4,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 1800
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
+    "id": 2014,
+    "name": "幽冥法袍",
+    "pos": 3,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 2700
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 61
+  },
+  {
+    "id": 2015,
+    "name": "焚天剑",
+    "pos": 1,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 2600
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2016,
+    "name": "天火战衣",
+    "pos": 3,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 3900
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 71
+  },
+  {
+    "id": 2017,
+    "name": "昆仑神剑",
+    "pos": 1,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 3700
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
+    "id": 2018,
+    "name": "昆仑仙袍",
+    "pos": 3,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 5600
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 81
+  },
+  {
+    "id": 2019,
+    "name": "混沌帝剑",
+    "pos": 1,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 1,
+        "value": 5200
+      }
+    ],
+    "affix_pool": [
+      101,
+      102
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
+  },
+  {
+    "id": 2020,
+    "name": "混沌帝袍",
+    "pos": 3,
+    "quality": 5,
+    "base_attrs": [
+      {
+        "attr_id": 3,
+        "value": 7800
+      }
+    ],
+    "affix_pool": [
+      103,
+      104
+    ],
+    "max_strengthen": 50,
+    "max_refine": 10,
+    "unlock_level": 91
   }
 ]

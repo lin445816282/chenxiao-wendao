@@ -9,8 +9,14 @@
         "count_max": 1
       },
       {
+        "item_id": 2002,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
         "item_id": 5001,
-        "weight": 50,
+        "weight": 40,
         "count_min": 1,
         "count_max": 3
       }
@@ -20,10 +26,22 @@
     "id": 2,
     "entries": [
       {
-        "item_id": 2002,
+        "item_id": 2003,
         "weight": 100,
         "count_min": 1,
         "count_max": 1
+      },
+      {
+        "item_id": 2004,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
       }
     ]
   },
@@ -31,14 +49,229 @@
     "id": 3,
     "entries": [
       {
-        "item_id": 2002,
+        "item_id": 2005,
         "weight": 100,
         "count_min": 1,
         "count_max": 1
       },
       {
-        "item_id": 3001,
-        "weight": 20,
+        "item_id": 2006,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3003,
+        "weight": 8,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 4,
+    "entries": [
+      {
+        "item_id": 2007,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 2008,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3004,
+        "weight": 8,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 5,
+    "entries": [
+      {
+        "item_id": 2009,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 2010,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3005,
+        "weight": 8,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 6,
+    "entries": [
+      {
+        "item_id": 2011,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 2012,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3006,
+        "weight": 8,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 7,
+    "entries": [
+      {
+        "item_id": 2013,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 2014,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3007,
+        "weight": 8,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 8,
+    "entries": [
+      {
+        "item_id": 2015,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 2016,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3008,
+        "weight": 8,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 9,
+    "entries": [
+      {
+        "item_id": 2017,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 2018,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3009,
+        "weight": 8,
+        "count_min": 1,
+        "count_max": 1
+      }
+    ]
+  },
+  {
+    "id": 10,
+    "entries": [
+      {
+        "item_id": 2019,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 2020,
+        "weight": 100,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
+        "item_id": 5001,
+        "weight": 40,
+        "count_min": 1,
+        "count_max": 3
+      },
+      {
+        "item_id": 3010,
+        "weight": 8,
         "count_min": 1,
         "count_max": 1
       }

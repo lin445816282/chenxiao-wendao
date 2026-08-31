@@ -15,9 +15,16 @@ const (
 	attrHP  = 3
 )
 
-// heroUnit 装配主角属性：裸装基础 + 已穿戴装备（基础属性 + 随机词条 + 强化/精炼加成）。
+// heroUnit 装配主角属性：裸装基础（随等级成长）+ 已穿戴装备（基础属性 + 随机词条 + 强化/精炼加成）。
 func (s *Service) heroUnit(playerID int64) combat.Unit {
-	atk, def, hp := int64(200), int64(50), int64(2000) // 裸装基础
+	// 裸装基础随等级成长：攻击 +30/级、防御 +8/级、生命 +300/级
+	lv := int64(1)
+	if p, err := store.GetPlayerByID(s.DB, playerID); err == nil {
+		lv = int64(p.Level)
+	}
+	atk := int64(200) + (lv-1)*30
+	def := int64(50) + (lv-1)*8
+	hp := int64(2000) + (lv-1)*300
 	list, _ := store.ListEquip(s.DB, playerID)
 	for _, e := range list {
 		if e.Pos == 0 { // 仅统计已穿戴装备

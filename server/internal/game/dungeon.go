@@ -33,12 +33,21 @@ func (s *Service) OnStartStage(ctx context.Context, conn *net.Connection, body [
 		})
 	}
 
-	// 我方：主角 + 出战灵宠（从存档/装备/灵宠装配真实属性）
-	var attackers []combat.Unit
+	// 等级门槛校验：等级不足则拒绝开战
 	var playerID int64
 	if p, err := store.GetPlayerByAccount(s.DB, mockAccountID); err == nil {
 		playerID = p.ID
-		attackers = s.assembleTeam(p.ID)
+		if stage.UnlockLevel > 0 && p.Level < stage.UnlockLevel {
+			return respond(msgid.S2CStartStage, &dungeon.S2CStartStage{
+				Result: &common.Result{Code: common.ErrorCode_ERR_STAGE_LOCKED},
+			})
+		}
+	}
+
+	// 我方：主角 + 出战灵宠（从存档/装备/灵宠装配真实属性）
+	var attackers []combat.Unit
+	if playerID > 0 {
+		attackers = s.assembleTeam(playerID)
 	} else {
 		attackers = []combat.Unit{mockHero()}
 	}

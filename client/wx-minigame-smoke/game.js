@@ -12,29 +12,38 @@ function bytesToStr(b) { let s = '', i = 0; while (i < b.length) { const c = b[i
 function utf8(s) { const a = []; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); if (c < 128) a.push(c); else { const b = encodeURIComponent(s[i]).split('%'); for (let j = 1; j < b.length; j++) a.push(parseInt(b[j], 16)); } } return a; }
 // 静态配置（与 server/configs/*.json 对齐，纯数据/纯函数，无运行时状态依赖）
 const STAGES = [
-  { id: 1001, type: 1, name: '尘息小径', monsterName: '尘息小妖', power: 400, icon: '🌿', img: 'monster' },
-  { id: 1002, type: 1, name: '霄影林', monsterName: '霄影精怪', power: 700, icon: '🌲', img: 'monsterElite' },
-  { id: 2001, type: 2, name: '玄灵试炼', monsterName: '玄灵魔尊', power: 1500, icon: '🐉', boss: true, img: 'boss' },
-  { id: 3001, type: 3, name: '血魔渊', monsterName: '血魔老祖', power: 2200, icon: '🩸', boss: true, img: 'bossBlood' },
+  { id: 1001, type: 1, name: '尘息小径', monsterName: '尘息小妖', power: 400, icon: '🌿', img: 'monster', unlockLevel: 1 },
+  { id: 1002, type: 1, name: '霄影林', monsterName: '霄影精怪', power: 700, icon: '🌲', img: 'monsterElite', unlockLevel: 11 },
+  { id: 1003, type: 2, name: '落星谷', monsterName: '落星魔狼', power: 1200, icon: '🌠', boss: true, img: 'boss', unlockLevel: 21 },
+  { id: 1004, type: 2, name: '寒潭洞', monsterName: '寒潭蛟', power: 2000, icon: '❄️', boss: true, img: 'bossBlood', unlockLevel: 31 },
+  { id: 1005, type: 2, name: '雷音寺', monsterName: '雷音金刚', power: 3200, icon: '⚡', boss: true, img: 'monsterGold', unlockLevel: 41 },
+  { id: 1006, type: 3, name: '万妖窟', monsterName: '万妖王', power: 4800, icon: '👹', boss: true, img: 'monsterFire', unlockLevel: 51 },
+  { id: 1007, type: 3, name: '幽冥渊', monsterName: '幽冥鬼王', power: 7000, icon: '🌑', boss: true, img: 'monsterShadow', unlockLevel: 61 },
+  { id: 1008, type: 3, name: '天火崖', monsterName: '天火魔尊', power: 10000, icon: '🔥', boss: true, img: 'bossFire', unlockLevel: 71 },
+  { id: 1009, type: 3, name: '昆仑墟', monsterName: '昆仑古神', power: 14000, icon: '🏔️', boss: true, img: 'monsterIce', unlockLevel: 81 },
+  { id: 1010, type: 3, name: '仙帝宫', monsterName: '混沌仙帝', power: 20000, icon: '👑', boss: true, img: 'bossShadow', unlockLevel: 91 },
 ];
 const ACHIEVEMENTS = [
   { id: 1, name: '初入仙途', desc: '通关第一个关卡' },
-  { id: 2, name: '斩妖除魔', desc: '通关全部 4 个关卡' },
+  { id: 2, name: '斩妖除魔', desc: '通关全部 10 个关卡' },
   { id: 3, name: '装备初成', desc: '获得第一件装备' },
   { id: 4, name: '灵宠相伴', desc: '获得第一只灵宠' },
   { id: 5, name: '战力过千', desc: '战力达到 1000' },
+  { id: 6, name: '登峰造极', desc: '达到 100 级' },
 ];
-const EQUIP_NAME = { 2001: '青锋剑', 2002: '流云法衣' };
-const EQUIP_POS = { 2001: 1, 2002: 3 }; // 装备配置部位（与 equip.json 对齐）
+const EQUIP_NAME = { 2001: '青锋剑', 2002: '流云法衣', 2003: '灵木杖', 2004: '云纹道袍', 2005: '星陨剑', 2006: '星罗法衣', 2007: '寒霜剑', 2008: '冰蚕宝甲', 2009: '紫电剑', 2010: '雷纹战甲', 2011: '妖皇戟', 2012: '万妖袍', 2013: '幽冥刃', 2014: '幽冥法袍', 2015: '焚天剑', 2016: '天火战衣', 2017: '昆仑神剑', 2018: '昆仑仙袍', 2019: '混沌帝剑', 2020: '混沌帝袍' };
+const EQUIP_POS = { 2001: 1, 2003: 1, 2005: 1, 2007: 1, 2009: 1, 2011: 1, 2013: 1, 2015: 1, 2017: 1, 2019: 1, 2002: 3, 2004: 3, 2006: 3, 2008: 3, 2010: 3, 2012: 3, 2014: 3, 2016: 3, 2018: 3, 2020: 3 }; // 装备配置部位（与 equip.json 对齐）
 const POS_NAME = { 1: '武器', 2: '头盔', 3: '衣服', 4: '裤子', 5: '鞋子', 6: '项链', 7: '戒指', 8: '护符' };
-const EQUIP_BASE = { 2001: { atk: 100, def: 0, hp: 0 }, 2002: { atk: 0, def: 0, hp: 150 } };
+const EQUIP_BASE = { 2001: { atk: 100, def: 0, hp: 0 }, 2003: { atk: 200, def: 0, hp: 0 }, 2005: { atk: 320, def: 0, hp: 0 }, 2007: { atk: 500, def: 0, hp: 0 }, 2009: { atk: 780, def: 0, hp: 0 }, 2011: { atk: 1200, def: 0, hp: 0 }, 2013: { atk: 1800, def: 0, hp: 0 }, 2015: { atk: 2600, def: 0, hp: 0 }, 2017: { atk: 3700, def: 0, hp: 0 }, 2019: { atk: 5200, def: 0, hp: 0 }, 2002: { atk: 0, def: 0, hp: 150 }, 2004: { atk: 0, def: 0, hp: 300 }, 2006: { atk: 0, def: 0, hp: 480 }, 2008: { atk: 0, def: 0, hp: 750 }, 2010: { atk: 0, def: 0, hp: 1170 }, 2012: { atk: 0, def: 0, hp: 1800 }, 2014: { atk: 0, def: 0, hp: 2700 }, 2016: { atk: 0, def: 0, hp: 3900 }, 2018: { atk: 0, def: 0, hp: 5600 }, 2020: { atk: 0, def: 0, hp: 7800 } };
 const AFFIX_ATTR = { 101: '攻击', 102: '生命', 103: '防御', 104: '攻击' };
 const POS_LIST = [1, 2, 3, 4, 5, 6, 7, 8];
-const EQUIP_QUALITY = { 2001: 1, 2002: 2 }; // 品质（1凡 2灵 3玄 4地 5天）
+const EQUIP_QUALITY = { 2001: 1, 2002: 2, 2003: 2, 2004: 2, 2005: 2, 2006: 3, 2007: 3, 2008: 3, 2009: 3, 2010: 4, 2011: 4, 2012: 4, 2013: 4, 2014: 5, 2015: 5, 2016: 5, 2017: 5, 2018: 5, 2019: 5, 2020: 5 }; // 品质（1凡 2灵 3玄 4地 5天）
 const QUALITY_COLOR = { 1: '#c9ccd4', 2: '#4ade80', 3: '#60a5fa', 4: '#c084fc', 5: '#fbbf24' };
 const QUALITY_NAME = { 1: '凡品', 2: '灵品', 3: '玄品', 4: '地品', 5: '天品' };
-const PET_NAME = { 3001: '雪灵狐', 3002: '玄龟幼兽' };
-const PET_BASE = { 3001: { atk: 80, def: 0, hp: 0 }, 3002: { atk: 0, def: 0, hp: 120 } };
+const PET_NAME = { 3001: '雪灵狐', 3002: '玄龟幼兽', 3003: '赤炎狮', 3004: '冰魄蝉', 3005: '雷纹鹤', 3006: '九幽蟒', 3007: '火羽凤', 3008: '青鸾', 3009: '玄冰麒麟', 3010: '混沌神龙' };
+const PET_BASE = { 3001: { atk: 80, def: 0, hp: 0 }, 3002: { atk: 0, def: 0, hp: 120 }, 3003: { atk: 200, def: 0, hp: 0 }, 3004: { atk: 320, def: 0, hp: 0 }, 3005: { atk: 500, def: 0, hp: 0 }, 3006: { atk: 780, def: 0, hp: 0 }, 3007: { atk: 1200, def: 0, hp: 0 }, 3008: { atk: 0, def: 0, hp: 2200 }, 3009: { atk: 0, def: 0, hp: 3600 }, 3010: { atk: 5600, def: 0, hp: 0 } };
+const PET_IMG = { 3001: 'pet', 3002: 'petXuanwu', 3003: 'petFire', 3004: 'petIce', 3005: 'petGold', 3006: 'petShadow', 3007: 'petBlood', 3008: 'petJade', 3009: 'petHoly', 3010: 'petThunder' };
+const MAX_LEVEL = 100; // 角色等级上限
 const ITEM_NAME = { 5001: '灵石' };
 const ITEM_ICON = { 5001: 'iconMaterial' };
 // 境界称号：按等级划分，纯展示（仙侠风味）
@@ -72,6 +81,12 @@ const FASHIONS = [
   { id: 4, name: '赤袍大侠', img: 'heroRed' },
   { id: 5, name: '红衣女侠', img: 'heroFemale' },
   { id: 6, name: '蓝衫女侠', img: 'heroFemaleBlue' },
+  { id: 7, name: '紫霄仙尊', img: 'heroPurple' },
+  { id: 8, name: '青冥道人', img: 'heroTeal' },
+  { id: 9, name: '金焰战神', img: 'heroOrange' },
+  { id: 10, name: '桃夭仙子', img: 'heroPink' },
+  { id: 11, name: '紫霞仙子', img: 'heroViolet' },
+  { id: 12, name: '碧波仙子', img: 'heroCyan' },
 ];
 // 协议全文（弹框展示）
 const AGREEMENT_USER = [
@@ -156,6 +171,8 @@ let GROUND = Math.round(SH * 0.57);
 // ===== 状态 =====
 let scene = 'home', connected = false, hasRole = false;
 let nickname = '', level = 0, exp = 0, copper = 0, power = 0, welcomed = false, prevLevel = 0, heroAngle = 0, draggingHero = false, dragStartX = 0;
+let heroRot = 0, heroDragLastX = 0, heroDragging = false; // 人物界面 360° 旋转
+let stagesScroll = 0, stagesDragY = 0, stagesDragging = false, stagesTap = null; // 关卡列表滚动
 let rewardedAd = null, adBizId = '';
 let log = [], buttons = [], battle = null, modal = null;
 let equipData = [], petData = [], mailData = [], bagItems = [], selIdx = 0, selEquip = null, equipPopup = null;
@@ -176,10 +193,11 @@ function currentFashion() { return FASHIONS[curFashion] || FASHIONS[0]; }
 function achDone(a) {
   switch (a.id) {
     case 1: return stageProgress.cleared.length >= 1;
-    case 2: return stageProgress.cleared.length >= 4;
+    case 2: return stageProgress.cleared.length >= 10;
     case 3: return equipData.length >= 1;
     case 4: return petData.length >= 1;
     case 5: return power >= 1000;
+    case 6: return level >= MAX_LEVEL;
   }
   return false;
 }
@@ -188,7 +206,7 @@ const STAGE_KEY = 'cxwd_stage_v1';
 let stageProgress = { cleared: [], stars: {} };
 try { const sp = wx.getStorageSync(STAGE_KEY); if (sp && sp.cleared) stageProgress = sp; } catch (e) {}
 function saveStage() { try { wx.setStorageSync(STAGE_KEY, stageProgress); } catch (e) {} }
-function stageUnlocked(s) { if (s.id === 1001) return true; const i = STAGES.findIndex(x => x.id === s.id); return i > 0 && stageProgress.cleared.indexOf(STAGES[i - 1].id) >= 0; }
+function stageUnlocked(s) { return level >= (s.unlockLevel || 1); }
 
 // ===== 网络 =====
 let ws = null, pending = null, reconnectTimer = null;
@@ -213,7 +231,10 @@ function send(id, body) {
 const IMG = {};
 function load(k, p) { const im = wx.createImage(); im.src = p; im.onload = () => IMG[k] = im; }
 load('bg', 'images/bg_home.png'); load('bgBattle', 'images/bg_battle.png');
-load('hero', 'images/hero_male.png'); load('heroFemale', 'images/hero_female.png'); load('heroBlue', 'images/hero_blue.png'); load('heroGold', 'images/hero_gold.png'); load('heroRed', 'images/hero_red.png'); load('heroFemaleBlue', 'images/hero_female_blue.png'); load('monster', 'images/monster_basic.png'); load('monsterElite', 'images/monster_elite.png'); load('boss', 'images/boss.png'); load('bossBlood', 'images/boss_blood.png'); load('pet', 'images/pet_linghu.png'); load('petXuanwu', 'images/pet_xuanwu.png'); load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png'); load('iconMaterial', 'images/icon_material.png');
+load('hero', 'images/hero_male.png'); load('heroFemale', 'images/hero_female.png'); load('heroBlue', 'images/hero_blue.png'); load('heroGold', 'images/hero_gold.png'); load('heroRed', 'images/hero_red.png'); load('heroFemaleBlue', 'images/hero_female_blue.png'); load('heroPurple', 'images/hero_purple.png'); load('heroTeal', 'images/hero_teal.png'); load('heroOrange', 'images/hero_orange.png'); load('heroPink', 'images/hero_pink.png'); load('heroViolet', 'images/hero_violet.png'); load('heroCyan', 'images/hero_cyan.png');
+load('monster', 'images/monster_basic.png'); load('monsterElite', 'images/monster_elite.png'); load('boss', 'images/boss.png'); load('bossBlood', 'images/boss_blood.png'); load('monsterFire', 'images/monster_fire.png'); load('monsterIce', 'images/monster_ice.png'); load('monsterShadow', 'images/monster_shadow.png'); load('monsterGold', 'images/monster_gold.png'); load('bossFire', 'images/boss_fire.png'); load('bossShadow', 'images/boss_shadow.png');
+load('pet', 'images/pet_linghu.png'); load('petXuanwu', 'images/pet_xuanwu.png'); load('petFire', 'images/pet_fire.png'); load('petIce', 'images/pet_ice.png'); load('petGold', 'images/pet_gold.png'); load('petShadow', 'images/pet_shadow.png'); load('petBlood', 'images/pet_blood.png'); load('petJade', 'images/pet_jade.png'); load('petHoly', 'images/pet_holy.png'); load('petThunder', 'images/pet_thunder.png');
+load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png'); load('iconMaterial', 'images/icon_material.png');
 
 // 绘制工具已抽到 js/draw.js（见下方 require）
 function addLog(s) { log.unshift(s); if (log.length > 3) log.pop(); }
@@ -500,8 +521,9 @@ async function strengthen() { const q = selectedEquip(); if (!q) return; await s
 async function refine() { const q = selectedEquip(); if (!q) return; await send(4006, [0x08].concat(wv(q.uid))); sndUpgrade(); addLog('已精炼 ' + (EQUIP_NAME[q.id] || '装备')); equipPopup = null; await doLogin(); await fetchEquip(); }
 async function decompose() { const q = selectedEquip(); if (!q) return; await send(4008, [0x08].concat(wv(q.uid))); sndUpgrade(); addLog('已分解 ' + (EQUIP_NAME[q.id] || '装备') + ' → 铜钱'); equipPopup = null; await doLogin(); await fetchEquip(); }
 function petName() { const p = petData.find(q => q.combat); return p ? (PET_NAME[p.id] || '灵宠') : '灵宠'; }
+function petImg() { const p = petData.find(q => q.combat); return p ? (PET_IMG[p.id] || 'pet') : 'pet'; }
 function calcAttrs() {
-  let atk = 200, def = 50, hp = 2000;
+  let atk = 200 + (level - 1) * 30, def = 50 + (level - 1) * 8, hp = 2000 + (level - 1) * 300;
   for (const q of equipData) { if (!q.pos) continue; const b = EQUIP_BASE[q.id] || { atk: 0, def: 0, hp: 0 }; atk += b.atk + q.s * 5 + q.r * 3; def += b.def; hp += b.hp; }
   return { atk, def, hp };
 }
@@ -517,6 +539,52 @@ async function showAttrs() {
   const worn = equipData.filter(q => q.pos).map(q => POS_NAME[EQUIP_POS[q.id]] + ':' + (EQUIP_NAME[q.id] || '装备'));
   showModal('属性', ['境界 ' + realmName(level) + ' · 战力 ' + power, '攻击 ' + a.atk, '防御 ' + a.def, '生命 ' + a.hp, '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
 }
+// 人物界面：按住左右拖动 360° 旋转查看人物（2.5D 广告牌旋转）
+function drawHeroSpinning(img, cx, cy, w, h, rot) {
+  const c = Math.cos(rot);
+  const sx = (c < 0 ? -1 : 1) * Math.max(0.16, Math.abs(c)); // 侧身时保留厚度，不消失
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(sx, 1);
+  draw(img, -w / 2, -h / 2, w, h);
+  ctx.restore();
+}
+async function doHero() { await fetchEquip(); heroRot = 0; scene = 'hero'; fade = 0; }
+function renderHero() {
+  coverDraw('bg', 0, 0, SW, SH);
+  ctx.fillStyle = 'rgba(10,22,40,0.6)'; ctx.fillRect(0, 0, SW, SH);
+  renderAmbient('#ffe9a0');
+  text('人物', SW / 2, 46, 22, '#ffd76a', 'center', true);
+  btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
+  btn({ x: SW - 87, y: 16, w: 72, h: 36, label: '换装' });
+  // 人物主体（可 360° 旋转）
+  const cx = SW / 2, cy = 330;
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, cy + 150, 86, 14, 0, 0, Math.PI * 2); ctx.fill();
+  drawHeroSpinning(currentFashion().img, cx, cy, 176, 300, heroRot);
+  const wornWpn = equipData.find(q => q.pos === 1);
+  if (wornWpn) draw('iconWeapon', cx + 46, cy + 40, 40, 40);
+  text('← 按住左右拖动旋转 →', cx, cy + 172, 11, '#9ab', 'center');
+  // 基础信息
+  text((hasRole ? nickname : '未建号') + ' · ' + realmName(level) + ' · Lv.' + level + '/' + MAX_LEVEL, cx, 512, 18, '#ffd76a', 'center', true);
+  const a = calcAttrs();
+  panel(20, 530, SW - 40, 78, 'rgba(15,25,45,0.85)', 12);
+  text('攻击 ' + a.atk + '    防御 ' + a.def + '    生命 ' + a.hp, cx, 556, 14, '#e8e8e8', 'center', true);
+  text('战力 ' + power + '    时装 ' + currentFashion().name, cx, 584, 12, '#7cc4ff', 'center');
+  // 等级段解锁预览（每 10 级一阶）
+  text('— 等级解锁预览 —', cx, 630, 12, '#9ab', 'center');
+  const curBand = Math.min(10, Math.floor((level - 1) / 10) + 1);
+  const bands = [];
+  for (let b = 1; b <= 10; b++) { const st = STAGES[b - 1]; bands.push({ b, st, pet: Object.keys(PET_NAME)[b - 1] }); }
+  bands.forEach((bd, i) => {
+    const px = 15 + (i % 5) * 73, py = 646 + Math.floor(i / 5) * 62;
+    const done = bd.b <= curBand;
+    panel(px, py, 66, 52, done ? 'rgba(37,99,235,0.5)' : 'rgba(10,16,28,0.9)', 8);
+    if (bd.b === curBand) { ctx.strokeStyle = 'rgba(255,213,90,0.9)'; ctx.lineWidth = 2; ctx.strokeRect(px, py, 66, 52); }
+    text('Lv' + ((bd.b - 1) * 10 + 1), px + 33, py + 18, 11, done ? '#ffd76a' : '#778', 'center', true);
+    text(bd.st.icon + ' ' + bd.st.monsterName.slice(0, 3), px + 33, py + 40, 9, done ? '#e8e8e8' : '#667', 'center');
+  });
+}
+
 async function fetchPet() {
   const [, body] = await send(5000, []);
   petData = [];
@@ -560,7 +628,7 @@ async function claimAllMail() {
 async function doRank() { const [, body] = await send(8000, []); const list = []; for (const f of p(body)) if (f.n === 2) { const e = p(f.d); const r = {}; for (const x of e) { if (x.n === 1) r.no = x.v; if (x.n === 3) r.nick = bytesToStr(x.d); if (x.n === 6) r.sc = Number(x.v); } list.push('#' + r.no + '  ' + r.nick + '  战力 ' + r.sc); } showModal('排行榜', list.length ? list : ['暂无数据'], [{ label: '关闭', fn: closeModal }]); }
 
 // ===== 渲染 =====
-function layout() { buttons = []; const w = 84, h = 48, g = 8; const bottom = [{ label: '战斗', icon: '⚔' }, { label: '领收益', icon: '✨' }, { label: '装备', icon: '🛡' }, { label: '灵宠', icon: '🐾' }]; const top = [{ label: '背包', icon: '🎒' }, { label: '邮件', icon: '✉' }, { label: '排行', icon: '🏆' }]; bottom.forEach((b, i) => buttons.push({ x: 15 + i * (w + g), y: SH - 12 - h - SAFE_BOTTOM, w, h, label: b.label, icon: b.icon })); const topW = 3 * w + 2 * g; top.forEach((b, i) => buttons.push({ x: (SW - topW) / 2 + i * (w + g), y: SH - 12 - 2 * h - g - SAFE_BOTTOM, w, h, label: b.label, icon: b.icon })); buttons.push({ x: SW - 84, y: 14 + SAFE_TOP, w: 70, h: 36, label: '设置', icon: '⚙' }); }
+function layout() { buttons = []; const w = 84, h = 48, g = 8; const bottom = [{ label: '战斗', icon: '⚔' }, { label: '领收益', icon: '✨' }, { label: '装备', icon: '🛡' }, { label: '灵宠', icon: '🐾' }]; const top = [{ label: '人物', icon: '🧍' }, { label: '背包', icon: '🎒' }, { label: '邮件', icon: '✉' }, { label: '排行', icon: '🏆' }]; bottom.forEach((b, i) => buttons.push({ x: 15 + i * (w + g), y: SH - 12 - h - SAFE_BOTTOM, w, h, label: b.label, icon: b.icon })); const topW = 4 * w + 3 * g; top.forEach((b, i) => buttons.push({ x: (SW - topW) / 2 + i * (w + g), y: SH - 12 - 2 * h - g - SAFE_BOTTOM, w, h, label: b.label, icon: b.icon })); buttons.push({ x: SW - 84, y: 14 + SAFE_TOP, w: 70, h: 36, label: '设置', icon: '⚙' }); }
 function renderHome() {
   coverDraw('bg', 0, 0, SW, SH);
   ctx.fillStyle = 'rgba(10,22,40,0.3)'; ctx.fillRect(0, 0, SW, SH);
@@ -569,23 +637,25 @@ function renderHome() {
   text('● ' + (connected ? '已连接' : '未连接'), SW / 2, 70, 12, connected ? '#4ade80' : '#f87171');
   ctx.save();
   ctx.translate(SW / 2, 92 + 142);
-  ctx.rotate(heroAngle * 0.35);
-  if (heroAngle < 0) ctx.scale(-1, 1);
+  const sway = Math.sin(Date.now() * 0.0015) * 0.15; // 待机轻微摆动
+  ctx.rotate(sway);
+  if (sway < 0) ctx.scale(-1, 1);
   draw(currentFashion().img, -80, -142, 160, 284);
   const wornWpn = equipData.find(q => q.pos === 1);
   const wornArm = equipData.find(q => q.pos === 3);
   if (wornWpn) draw('iconWeapon', 18, -38, 34, 34);
   if (wornArm) draw('iconArmor', -62, -14, 44, 44);
   ctx.restore();
-  text('← 左右拖动旋转 →', SW / 2, 402, 10, '#9ab', 'center');
+  text('点击查看人物', SW / 2, 402, 10, '#9ab', 'center');
   ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(SW / 2, 388, 62, 10, 0, 0, Math.PI * 2); ctx.fill();
-  text((hasRole ? nickname : '未建号') + '  ·  ' + realmName(level) + '  Lv.' + level, SW / 2, 414, 18, '#ffd76a', 'center', true);
+  text((hasRole ? nickname : '未建号') + '  ·  ' + realmName(level) + '  Lv.' + level + '/' + MAX_LEVEL, SW / 2, 414, 18, '#ffd76a', 'center', true);
   text('⚔ 战力 ' + power + '　ⓘ', SW / 2, 438, 14, '#7cc4ff', 'center', true);
   panel(SW / 2 - 92, 448, 184, 48, 'rgba(0,0,0,0.45)', 12);
   text('修为 ' + exp + '   铜钱 ' + copper, SW / 2, 466, 12, '#ffe9b0');
+  const maxed = level >= MAX_LEVEL;
   const needExp = Math.max(1, level * 1000);
-  bar(SW / 2 - 82, 476, 164, 6, '#e8c96a', Math.min(1, exp / needExp));
-  text('升级 ' + exp + ' / ' + needExp, SW / 2, 490, 9, '#9ab', 'center');
+  bar(SW / 2 - 82, 476, 164, 6, '#e8c96a', maxed ? 1 : Math.min(1, exp / needExp));
+  text(maxed ? '已至满级 · 真仙' : '升级 ' + exp + ' / ' + needExp, SW / 2, 490, 9, '#9ab', 'center');
   panel(20, 504, SW - 40, 100, 'rgba(15,25,45,0.6)', 14);
   text('离线修炼中', 34, 532, 14, '#ffd76a', 'left', true);
   text('修为 +2/秒 · 铜钱 +5/秒 · 离线有收益', 34, 556, 12, '#e8e8e8', 'left');
@@ -606,8 +676,14 @@ function renderStages() {
   renderAmbient('#ffe9a0');
   text('秘境关卡', SW / 2, 56, 24, '#ffd76a', 'center', true);
   text('提升战力，逐关推进', SW / 2, 82, 12, '#9ab', 'center');
+  const listTop = 108, rowH = 122;
+  const maxScroll = Math.max(0, listTop + STAGES.length * rowH - (SH - 66));
+  stagesScroll = Math.max(0, Math.min(stagesScroll, maxScroll));
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 96, SW, SH - 96 - 66); ctx.clip();
+  ctx.translate(0, -stagesScroll);
   STAGES.forEach((s, i) => {
-    const cx = 20, cy = 108 + i * 122, cw = SW - 40, ch = 108;
+    const cx = 20, cy = listTop + i * rowH, cw = SW - 40, ch = 108;
     const unlocked = stageUnlocked(s), cleared = stageProgress.cleared.indexOf(s.id) >= 0;
     const star = stageProgress.stars[s.id] || 0;
     panel(cx, cy, cw, ch, unlocked ? 'rgba(15,25,45,0.9)' : 'rgba(10,14,24,0.97)', 14);
@@ -616,7 +692,8 @@ function renderStages() {
     else { ctx.strokeStyle = 'rgba(255,213,90,0.7)'; ctx.lineWidth = 2; ctx.strokeRect(cx, cy, cw, ch); }
     text(s.icon, cx + 34, cy + ch / 2 + 8, 34, unlocked ? '#fff' : '#555', 'center');
     text(s.name, cx + 76, cy + 36, 18, unlocked ? '#fff' : '#777', 'left', true);
-    const bad = s.boss ? 'BOSS' : '普通', bc = s.boss ? 'rgba(220,38,38,0.92)' : 'rgba(37,99,235,0.92)';
+    text('Lv' + s.unlockLevel + ' 解锁', cx + 76, cy + 20, 10, unlocked ? '#7cc4ff' : '#556', 'left');
+    const bad = s.boss ? 'BOSS' : (s.type === 2 ? '精英' : '普通'), bc = s.boss ? 'rgba(220,38,38,0.92)' : (s.type === 2 ? 'rgba(168,85,247,0.92)' : 'rgba(37,99,235,0.92)');
     ctx.fillStyle = bc; ctx.beginPath(); const br = 6; const bx = cx + 76, by = cy + 46, bw2 = 44, bh2 = 18; ctx.moveTo(bx + br, by); ctx.arcTo(bx + bw2, by, bx + bw2, by + bh2, br); ctx.arcTo(bx + bw2, by + bh2, bx, by + bh2, br); ctx.arcTo(bx, by + bh2, bx, by, br); ctx.arcTo(bx, by, bx + bw2, by, br); ctx.fill();
     text(bad, bx + bw2 / 2, by + 14, 11, '#fff', 'center', true);
     text('推荐战力 ' + s.power, cx + 76, cy + 84, 12, '#9ab', 'left');
@@ -628,6 +705,8 @@ function renderStages() {
     }
     else text('挑战 →', cx + cw - 16, cy + ch / 2 + 6, 14, '#ffd76a', 'right', true);
   });
+  ctx.restore();
+  if (maxScroll > 0) { text('上下滑动查看更多', SW / 2, SH - 24, 10, '#9ab', 'center'); }
   btn({ x: 15, y: SH - 60, w: 90, h: 44, label: '返回' });
 }
 function renderEquip() {
@@ -746,17 +825,17 @@ function renderBattle() {
   const mw = isBoss ? 190 : 150, mh = isBoss ? 190 : 150, mx = SW - mw - 24 - ms + mknock, my = GROUND - mh, mcx = mx + mw / 2;
   ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(99, GROUND + 5, 52, 9, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(mcx, GROUND + 5, mw * 0.36, 10, 0, 0, Math.PI * 2); ctx.fill();
-  text('尘霄散修', 99, GROUND - 278, 12, '#b7f0c0', 'center', true);
+  text((hasRole ? nickname : '尘霄散修'), 99, GROUND - 278, 12, '#b7f0c0', 'center', true);
   text((isBoss ? 'BOSS · ' : '') + st.monsterName, mcx, my - 12, 12, isBoss ? '#ff8080' : '#ffd2d2', 'center', true);
   const hasPet = battle.hasPet, pcx = 168, px = 128, py = GROUND - 84;
   if (hasPet) {
     ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.beginPath(); ctx.ellipse(pcx, GROUND + 4, 30, 6, 0, 0, Math.PI * 2); ctx.fill();
     text(petName(), pcx, py - 6, 11, '#ffe9b0', 'center', true);
-    draw('pet', px, py, 80, 80);
-    if (flashPet > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw('pet', px, py, 80, 80); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+    draw(petImg(), px, py, 80, 80);
+    if (flashPet > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(petImg(), px, py, 80, 80); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
   }
   const mimg = st.img || 'monster';
-  draw('hero', 24 + hl + hknock, GROUND - 267, 150, 267);
+  draw(currentFashion().img, 24 + hl + hknock, GROUND - 267, 150, 267);
   // 主角武器（动态：攻击时挥动旋转 + 发光）
   const wpnX = 128 + hl + hknock, wpnY = GROUND - 172;
   ctx.save();
@@ -772,7 +851,7 @@ function renderBattle() {
   ctx.globalAlpha = dieA;
   draw(mimg, mx, my, mw, mh);
   ctx.globalAlpha = 1;
-  if (flashHero > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw('hero', 24 + hl, GROUND - 267, 150, 267); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+  if (flashHero > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(currentFashion().img, 24 + hl, GROUND - 267, 150, 267); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
   if (flashMonster > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(mimg, mx, my, mw, mh); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
   // 动态血条（按攻击方/受击方阵营累计）
   let dmgM = 0, dmgMT = 0, dmgH = 0, dmgHT = 0, dmgP = 0, dmgPT = 0;
@@ -851,7 +930,7 @@ function renderPet() {
     const sel = selIdx === i;
     panel(15, py, SW - 30, lh, sel ? 'rgba(37,99,235,0.5)' : 'rgba(15,25,45,0.85)', 10);
     if (sel) { ctx.strokeStyle = 'rgba(255,213,90,0.85)'; ctx.lineWidth = 2; ctx.strokeRect(15, py, SW - 30, lh); }
-    draw(q.id === 3002 ? 'petXuanwu' : 'pet', 18, py + 6, 48, 48);
+    draw(PET_IMG[q.id] || 'pet', 18, py + 6, 48, 48);
     text((PET_NAME[q.id] || '灵宠') + (q.combat ? ' 【出战】' : ''), 72, py + 22, 14, '#ffd0a0', 'left', true);
     text('Lv.' + q.lv + '  ★' + q.star, 72, py + 42, 11, '#9ab', 'left');
   });
@@ -946,7 +1025,7 @@ function renderLogin() {
   text('《' + LOGIN.agreementPrivacy + '》', 215, ly, 13, '#7cc4ff', 'left');
   text('v1.0.0', SW / 2, SH - 30, 11, '#9ab', 'center');
 }
-function render() { if (scene === 'battle') renderBattle(); else if (scene === 'stages') renderStages(); else if (scene === 'equip') { renderEquip(); renderEquipDetail(); } else if (scene === 'pet') renderPet(); else if (scene === 'bag') renderBag(); else if (scene === 'fashion') renderFashion(); else if (scene === 'settings') renderSettings(); else if (scene === 'achievements') renderAchievements(); else if (scene === 'privacy') renderPrivacy(); else if (scene === 'login') renderLogin(); else renderHome(); if (fade < 1) { ctx.fillStyle = 'rgba(0,0,0,' + (1 - fade) + ')'; ctx.fillRect(0, 0, SW, SH); } renderModal(); renderGuide(); }
+function render() { if (scene === 'battle') renderBattle(); else if (scene === 'stages') renderStages(); else if (scene === 'equip') { renderEquip(); renderEquipDetail(); } else if (scene === 'pet') renderPet(); else if (scene === 'bag') renderBag(); else if (scene === 'fashion') renderFashion(); else if (scene === 'hero') renderHero(); else if (scene === 'settings') renderSettings(); else if (scene === 'achievements') renderAchievements(); else if (scene === 'privacy') renderPrivacy(); else if (scene === 'login') renderLogin(); else renderHome(); if (fade < 1) { ctx.fillStyle = 'rgba(0,0,0,' + (1 - fade) + ')'; ctx.fillRect(0, 0, SW, SH); } renderModal(); renderGuide(); }
 
 function update(dt) {
   for (const p of ambient) { p.y -= p.sp * dt; p.x += Math.sin((p.y + p.ph) * 0.02) * 0.4; if (p.y < -10) { p.y = SH + 10; p.x = Math.random() * SW; } }
@@ -991,7 +1070,7 @@ function update(dt) {
 }
 
 // ===== 触摸 =====
-const mainActions = { '战斗': doStages, '领收益': doClaim, '装备': doEquip, '灵宠': doPet, '背包': doBag, '邮件': doMail, '排行': doRank, '设置': doSettings };
+const mainActions = { '战斗': doStages, '领收益': doClaim, '装备': doEquip, '灵宠': doPet, '人物': doHero, '背包': doBag, '邮件': doMail, '排行': doRank, '设置': doSettings };
 async function doSettings() { scene = 'settings'; fade = 0; }
 async function doAchievements() { await fetchEquip(); await fetchPet(); scene = 'achievements'; fade = 0; }
 function doLogout() {
@@ -1098,7 +1177,7 @@ wx.onTouchStart((e) => {
     if (y >= SH - 92 && y <= SH - 52) { sndClick(); showModal('提示', ['需同意协议后才能进入游戏'], [{ label: '知道了', fn: closeModal }]); return; }
     return;
   }
-  if (scene === 'home' && !modal && !guide && x >= SW / 2 - 95 && x <= SW / 2 + 95 && y >= 80 && y <= 405) { heroAngle = x < SW / 2 ? -0.7 : 0.7; sndClick(); return; }
+  if (scene === 'home' && !modal && !guide && x >= SW / 2 - 95 && x <= SW / 2 + 95 && y >= 80 && y <= 405) { sndClick(); doHero(); return; }
   if (guide && scene === 'home' && !modal) {
     if (guide.phase === 'intro') {
       if (x >= SW / 2 - 62 && x <= SW / 2 + 62 && y >= 396 && y <= 440) { sndClick(); guide = { phase: 'battle' }; }
@@ -1120,16 +1199,20 @@ wx.onTouchStart((e) => {
     return;
   }
   if (scene === 'stages') {
+    stagesDragY = y; stagesDragging = false;
     if (x >= 15 && x <= 105 && y >= SH - 60 && y <= SH - 16) { sndClick(); scene = 'home'; fade = 0; return; }
-    STAGES.forEach((s, i) => {
+    const adjY = y + stagesScroll;
+    for (const s of STAGES) {
+      const i = STAGES.indexOf(s);
       const cy = 108 + i * 122, ch = 108;
-      if (x >= 20 && x <= SW - 20 && y >= cy && y <= cy + ch) {
+      if (x >= 20 && x <= SW - 20 && adjY >= cy && adjY <= cy + ch) {
         const cleared = stageProgress.cleared.indexOf(s.id) >= 0;
-        if (cleared && x >= SW - 98 && x <= SW - 36 && y >= cy + 44 && y <= cy + 74) { sndClick(); doSweep(s.id, s.type); return; }
-        if (!stageUnlocked(s)) { addLog('需先通关「' + STAGES[i - 1].name + '」'); sndClick(); return; }
-        sndClick(); doBattle(s.id, s.type);
+        if (cleared && x >= SW - 98 && x <= SW - 36 && adjY >= cy + 44 && adjY <= cy + 74) { stagesTap = { s, sweep: true }; return; }
+        if (!stageUnlocked(s)) { sndClick(); addLog('需达到 Lv.' + s.unlockLevel + ' 解锁「' + s.name + '」'); return; }
+        stagesTap = { s, battle: true }; return;
       }
-    });
+    }
+    stagesTap = null;
     return;
   }
   if (scene === 'equip') {
@@ -1214,6 +1297,11 @@ wx.onTouchStart((e) => {
     });
     return;
   }
+  if (scene === 'hero') {
+    if (x >= 15 && x <= 87 && y >= 16 && y <= 52) { sndClick(); scene = 'home'; fade = 0; return; }
+    if (x >= SW - 87 && x <= SW - 15 && y >= 16 && y <= 52) { sndClick(); scene = 'fashion'; fade = 0; return; }
+    return;
+  }
   if (scene === 'settings') {
     if (x >= 15 && x <= 87 && y >= 16 && y <= 52) { sndClick(); scene = privacyAgreed ? 'home' : 'login'; fade = 0; return; }
     if (x >= 15 && x <= SW - 15 && y >= 70 && y <= 126) { audio.setSoundOn(!audio.getSoundOn()); sndClick(); return; }
@@ -1243,6 +1331,37 @@ wx.onTouchStart((e) => {
   if (scene === 'home' && x >= 28 && x <= 150 && y >= 550 && y <= 576) { sndClick(); doAd(); return; }
   for (const b of buttons) { if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { sndClick(); if (mainActions[b.label]) mainActions[b.label](); return; } }
 });
+
+// 人物界面：按住左右拖动 360° 旋转；关卡页上下拖动滚动列表
+wx.onTouchMove((e) => {
+  const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+  const x = t ? (t.clientX !== undefined ? t.clientX : t.x) : 0;
+  const y = t ? (t.clientY !== undefined ? t.clientY : t.y) : 0;
+  if (scene === 'hero') {
+    if (!heroDragging) { heroDragging = true; heroDragLastX = x; return; }
+    heroRot += (x - heroDragLastX) * 0.02;
+    heroDragLastX = x;
+  } else if (scene === 'stages') {
+    if (!stagesDragging) {
+      if (Math.abs(y - stagesDragY) < 8) return; // 轻微抖动不算拖动
+      stagesDragging = true; stagesTap = null;
+      return;
+    }
+    stagesScroll -= (y - stagesDragY);
+    stagesDragY = y;
+  }
+});
+wx.onTouchEnd(() => {
+  heroDragging = false;
+  if (scene === 'stages' && stagesTap && !stagesDragging) {
+    sndClick();
+    if (stagesTap.sweep) doSweep(stagesTap.s.id, stagesTap.s.type);
+    else doBattle(stagesTap.s.id, stagesTap.s.type);
+    stagesTap = null;
+  }
+  stagesDragging = false;
+});
+wx.onTouchCancel(() => { heroDragging = false; stagesDragging = false; stagesTap = null; });
 
 // ===== 主循环 =====
 let lastT = Date.now();

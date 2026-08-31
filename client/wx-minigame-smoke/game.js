@@ -447,6 +447,12 @@ async function doSweep(stageId, stageType) {
   showModal('扫荡结果', lines, [{ label: '确定', fn: closeModal }]);
   await doLogin();
 }
+function skipBattle() {
+  if (!battle || battle.done) return;
+  sndClick();
+  battle.pushed = battle.res.actions.length;
+  battle.t = Math.max(battle.t, 0.4 + battle.pushed * (0.45 / battleSpeed) + 0.6);
+}
 async function fetchEquip() {
   const [, body] = await send(4000, []);
   equipData = [];
@@ -719,6 +725,7 @@ function renderBattle() {
   const t = battle.t; const hl = (t % 1) < 0.25 ? 18 : 0; const ms = ((t + 0.25) % 1) < 0.1 ? 10 : 0;
   const st = battle.stage; const isBoss = st && st.boss;
   text('秘境 · ' + st.name, SW / 2, 40, 18, '#fff', 'center', true);
+  if (!battle.done) btn({ x: SW - 162, y: 16, w: 70, h: 34, label: '⏭ 跳过' });
   btn({ x: SW - 84, y: 16, w: 70, h: 34, label: battleSpeed === 1 ? '⏩ 2x' : '▶ 1x' });
   if (isBoss && t < 1.4) { const a = Math.min(1, t * 2); text('⚠ BOSS 来袭', SW / 2, GROUND - 210, Math.round(30 * (0.8 + 0.2 * a)), 'rgba(255,90,90,' + a + ')', 'center', true); }
   if (arcLife > 0) { ctx.strokeStyle = 'rgba(255,240,190,0.25)'; ctx.lineWidth = 16; ctx.beginPath(); ctx.arc(SW / 2, GROUND - 110, 120, Math.PI * 0.75, Math.PI * 2.25); ctx.stroke(); ctx.strokeStyle = 'rgba(255,245,205,0.95)'; ctx.lineWidth = 8; ctx.beginPath(); ctx.arc(SW / 2, GROUND - 110, 120, Math.PI * 0.75, Math.PI * 2.25); ctx.stroke(); }
@@ -1210,6 +1217,7 @@ wx.onTouchStart((e) => {
     return;
   }
   if (scene === 'battle') {
+    if (!battle.done && x >= SW - 162 && x <= SW - 92 && y >= 16 && y <= 50) { skipBattle(); return; }
     if (x >= SW - 84 && x <= SW - 14 && y >= 16 && y <= 50) { sndClick(); battleSpeed = battleSpeed === 1 ? 2 : 1; return; }
     if (battle && battle.done && battle.t > (battle.doneTime || 0) + 0.4) {
       const by = SH - 90;

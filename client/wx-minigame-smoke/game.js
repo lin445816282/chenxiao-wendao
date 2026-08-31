@@ -450,7 +450,7 @@ async function doSweep(stageId, stageType) {
     else if (f.n === 3) { let id = 0; for (const x of p(f.d)) if (x.n === 2) id = x.v; equips.push(Number(id)); }
     else if (f.n === 4) { let id = 0; for (const x of p(f.d)) if (x.n === 2) id = x.v; pets.push(Number(id)); }
   }
-  if (code > 0) { addLog('需先通关该关卡才能扫荡'); return; }
+  if (code > 0) { showModal('扫荡失败', ['需先手动挑战通关该关卡后，才能扫荡。'], [{ label: '知道了', fn: closeModal }]); return; }
   const lines = [];
   rewards.forEach(r => lines.push((r.id === 1 ? '铜钱' : r.id === 2 ? '修为' : (ITEM_NAME[r.id] || '材料')) + ' × ' + r.c));
   equips.forEach(id => lines.push('⚔ ' + (EQUIP_NAME[id] || '装备#' + id)));

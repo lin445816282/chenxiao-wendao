@@ -784,8 +784,8 @@ function renderBattle() {
     }
     if (w) text('— 战利品 —', SW / 2, py + 82, 12, '#9ab', 'center');
     loot.forEach(([s, c], i) => text(s, SW / 2, py + 104 + i * 24, 15, c, 'center'));
-    panel(SW / 2 - 60, py + ph - 46, 120, 40, 'rgba(37,99,235,0.95)', 20);
-    text('返回', SW / 2, py + ph - 20, 16, '#fff', 'center', true);
+    btn({ x: 30, y: py + ph - 46, w: 156, h: 40, label: '⚔ 再战一次' });
+    btn({ x: 204, y: py + ph - 46, w: 156, h: 40, label: '返回' });
   }
   if (bossFlash > 0) {
     ctx.fillStyle = 'rgba(255,45,45,' + (bossFlash * 0.45) + ')';
@@ -1186,7 +1186,11 @@ wx.onTouchStart((e) => {
   }
   if (scene === 'battle') {
     if (x >= SW - 84 && x <= SW - 14 && y >= 16 && y <= 50) { sndClick(); battleSpeed = battleSpeed === 1 ? 2 : 1; return; }
-    if (battle && battle.done && battle.t > (battle.doneTime || 0) + 0.4) { sndClick(); scene = 'home'; fade = 0; battle = null; if (guide && guide.phase === 'fighting') guide = { phase: 'claim' }; }
+    if (battle && battle.done && battle.t > (battle.doneTime || 0) + 0.4) {
+      const by = SH - 90;
+      if (x >= 30 && x <= 186 && y >= by && y <= by + 40) { sndClick(); doBattle(battle.stage.id, battle.stage.type); return; }
+      if (x >= 204 && x <= 360 && y >= by && y <= by + 40) { sndClick(); scene = 'home'; fade = 0; battle = null; if (guide && guide.phase === 'fighting') guide = { phase: 'claim' }; }
+    }
     return;
   }
   if (scene === 'home' && x >= SW / 2 - 70 && x <= SW / 2 + 70 && y >= 428 && y <= 456) { sndClick(); showAttrs(); return; }

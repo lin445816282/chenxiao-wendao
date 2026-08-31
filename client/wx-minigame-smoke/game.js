@@ -545,10 +545,33 @@ function setBonusInfo() {
 }
 function calcAttrs() {
   let atk = 200 + (level - 1) * 30, def = 50 + (level - 1) * 8, hp = 2000 + (level - 1) * 300;
-  for (const q of equipData) { if (!q.pos) continue; const b = EQUIP_BASE[q.id] || { atk: 0, def: 0, hp: 0 }; atk += b.atk + q.s * 5 + q.r * 3; def += b.def; hp += b.hp; }
+  for (const q of equipData) { if (!q.pos) continue; const b = EQUIP_BASE[q.id] || { atk: 0, def: 0, hp: 0 }; atk += b.atk + q.s * 5 + q.r * 3; def += b.def; hp += b.hp; for (const af of q.affixes) { if (AFFIX_ATTR[af.aid] === '攻击') atk += af.av; else if (AFFIX_ATTR[af.aid] === '防御') def += af.av; else if (AFFIX_ATTR[af.aid] === '生命') hp += af.av; } }
   const sb = setBonusInfo();
   if (sb.pct > 0) { atk = Math.round(atk * (100 + sb.pct) / 100); def = Math.round(def * (100 + sb.pct) / 100); hp = Math.round(hp * (100 + sb.pct) / 100); }
   return { atk, def, hp };
+}
+// 战力来源明细（基础/装备/套装/灵宠，总战力以服务端为准）
+function powerBreakdown() {
+  const baseAtk = 200 + (level - 1) * 30, baseDef = 50 + (level - 1) * 8, baseHp = 2000 + (level - 1) * 300;
+  const basePower = baseAtk * 2 + baseDef + Math.floor(baseHp / 10);
+  let eqAtk = 0, eqDef = 0, eqHp = 0;
+  for (const q of equipData) {
+    if (!q.pos) continue;
+    const b = EQUIP_BASE[q.id] || { atk: 0, def: 0, hp: 0 };
+    eqAtk += b.atk + q.s * 5 + q.r * 3; eqDef += b.def; eqHp += b.hp;
+    for (const af of q.affixes) { if (AFFIX_ATTR[af.aid] === '攻击') eqAtk += af.av; else if (AFFIX_ATTR[af.aid] === '防御') eqDef += af.av; else if (AFFIX_ATTR[af.aid] === '生命') eqHp += af.av; }
+  }
+  const eqPower = eqAtk * 2 + eqDef + Math.floor(eqHp / 10);
+  const sb = setBonusInfo();
+  const heroNoSet = (baseAtk + eqAtk) * 2 + (baseDef + eqDef) + Math.floor((baseHp + eqHp) / 10);
+  let setPower = 0;
+  if (sb.pct > 0) {
+    const a = Math.round((baseAtk + eqAtk) * (100 + sb.pct) / 100), d = Math.round((baseDef + eqDef) * (100 + sb.pct) / 100), h = Math.round((baseHp + eqHp) * (100 + sb.pct) / 100);
+    setPower = Math.max(0, a * 2 + d + Math.floor(h / 10) - heroNoSet);
+  }
+  let petPower = 0;
+  for (const q of petData) { if (q.combat) { const a = calcPetAttrs(q); petPower += a.atk * 2 + a.def + Math.floor(a.hp / 10); } }
+  return { basePower, eqPower, setPower, petPower, setPct: sb.pct, total: basePower + eqPower + setPower + petPower };
 }
 function equipAttrs(q) {
   const b = EQUIP_BASE[q.id] || { atk: 0, def: 0, hp: 0 };
@@ -558,10 +581,12 @@ function equipAttrs(q) {
 }
 async function showAttrs() {
   await fetchEquip();
+  await fetchPet();
   const a = calcAttrs();
   const worn = equipData.filter(q => q.pos).map(q => POS_NAME[EQUIP_POS[q.id]] + ':' + (EQUIP_NAME[q.id] || '装备'));
   const sb = setBonusInfo();
-  showModal('属性', ['境界 ' + realmName(level) + ' · 战力 ' + power, '攻击 ' + a.atk + '　防御 ' + a.def + '　生命 ' + a.hp, (sb.pct > 0 ? '套装 ' + sb.tier + '阶 ' + sb.count + '/8 件 · 攻防血 +' + sb.pct + '%' : '套装未激活（同阶 ≥4 件触发）'), '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
+  const bd = powerBreakdown();
+  showModal('战力明细', ['境界 ' + realmName(level) + ' · 总战力 ' + power, '攻击 ' + a.atk + '　防御 ' + a.def + '　生命 ' + a.hp, '— 战力来源 —', '基础(等级) ' + bd.basePower, '装备 ' + bd.eqPower + (sb.pct > 0 ? '　套装 +' + bd.setPower + ' (' + sb.pct + '%)' : '　套装 未激活'), '灵宠 ' + bd.petPower, '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
 }
 // 人物界面：按住左右拖动 360° 旋转查看人物（2.5D 广告牌旋转）
 function drawHeroSpinning(img, cx, cy, w, h, rot) {

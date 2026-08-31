@@ -3,10 +3,131 @@ const SOCKET_URL = 'wss://game.ct256.cn/ws';
 const AD_UNIT_ID = ''; // TODO: 填入微信激励视频广告位 ID（留空=测试模式直接完成）
 
 // ===== 模块加载 =====
-const { rv, wv, p, enc, bytesToStr, utf8 } = require('./js/protobuf.js');
-const { STAGES, ACHIEVEMENTS, EQUIP_NAME, EQUIP_POS, POS_NAME, EQUIP_BASE, AFFIX_ATTR, POS_LIST, QUALITY_COLOR, QUALITY_NAME, PET_NAME, PET_BASE, ITEM_NAME, ITEM_ICON, LOGIN, AGREEMENT_USER, AGREEMENT_PRIVACY, FASHIONS, equipColor, equipQualityName, calcPetAttrs } = require('./js/config.js');
-const audio = require('./js/audio.js');
-const { initAudio, startBGM, sndClick, sndHit, sndCrit, sndVictory, sndDodge, sndOpen, sndClose, sndDrop, sndUpgrade, sndError } = audio;
+// protobuf 编解码（手写最小实现：varint + length-delimited）
+function rv(b, o) { let r = 0n, s = 0n, i = o; while (1) { const x = b[i++]; r |= BigInt(x & 127) << s; if ((x & 128) === 0) break; s += 7n; } return { v: r, i }; }
+function wv(n) { const a = []; let v = BigInt(n); while (v >= 128n) { a.push(Number(v & 127n) | 128); v >>= 7n; } a.push(Number(v)); return a; }
+function p(buf) { const fs = []; let i = 0; while (i < buf.length) { const t = rv(buf, i); i = t.i; const n = Number(t.v >> 3n), w = Number(t.v & 7n); if (w === 0) { const v = rv(buf, i); i = v.i; fs.push({ n, w, v: v.v }); } else if (w === 2) { const l = rv(buf, i); i = l.i; const d = buf.slice(i, i + Number(l.v)); i += Number(l.v); fs.push({ n, w, d }); } else break; } return fs; }
+function enc(id, body) { const b = body || []; const u = new Uint8Array(8); const dv = new DataView(u.buffer); dv.setUint32(0, id); dv.setUint32(4, b.length); return new Uint8Array(Array.from(u).concat(b)); }
+function bytesToStr(b) { let s = '', i = 0; while (i < b.length) { const c = b[i]; if (c < 0x80) { s += String.fromCharCode(c); i++; } else if (c < 0xE0) { s += String.fromCharCode(((c & 31) << 6) | (b[i + 1] & 63)); i += 2; } else if (c < 0xF0) { s += String.fromCharCode(((c & 15) << 12) | ((b[i + 1] & 63) << 6) | (b[i + 2] & 63)); i += 3; } else { s += String.fromCharCode(((c & 7) << 18) | ((b[i + 1] & 63) << 12) | ((b[i + 2] & 63) << 6) | (b[i + 3] & 63)); i += 4; } } return s; }
+function utf8(s) { const a = []; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); if (c < 128) a.push(c); else { const b = encodeURIComponent(s[i]).split('%'); for (let j = 1; j < b.length; j++) a.push(parseInt(b[j], 16)); } } return a; }
+// 静态配置（与 server/configs/*.json 对齐，纯数据/纯函数，无运行时状态依赖）
+const STAGES = [
+  { id: 1001, type: 1, name: '尘息小径', monsterName: '尘息小妖', power: 400, icon: '🌿', img: 'monster' },
+  { id: 1002, type: 1, name: '霄影林', monsterName: '霄影精怪', power: 700, icon: '🌲', img: 'monsterElite' },
+  { id: 2001, type: 2, name: '玄灵试炼', monsterName: '玄灵魔尊', power: 1500, icon: '🐉', boss: true, img: 'boss' },
+  { id: 3001, type: 3, name: '血魔渊', monsterName: '血魔老祖', power: 2200, icon: '🩸', boss: true, img: 'bossBlood' },
+];
+const ACHIEVEMENTS = [
+  { id: 1, name: '初入仙途', desc: '通关第一个关卡' },
+  { id: 2, name: '斩妖除魔', desc: '通关全部 4 个关卡' },
+  { id: 3, name: '装备初成', desc: '获得第一件装备' },
+  { id: 4, name: '灵宠相伴', desc: '获得第一只灵宠' },
+  { id: 5, name: '战力过千', desc: '战力达到 1000' },
+];
+const EQUIP_NAME = { 2001: '青锋剑', 2002: '流云法衣' };
+const EQUIP_POS = { 2001: 1, 2002: 3 }; // 装备配置部位（与 equip.json 对齐）
+const POS_NAME = { 1: '武器', 2: '头盔', 3: '衣服', 4: '裤子', 5: '鞋子', 6: '项链', 7: '戒指', 8: '护符' };
+const EQUIP_BASE = { 2001: { atk: 100, def: 0, hp: 0 }, 2002: { atk: 0, def: 0, hp: 150 } };
+const AFFIX_ATTR = { 101: '攻击', 102: '生命', 103: '防御', 104: '攻击' };
+const POS_LIST = [1, 2, 3, 4, 5, 6, 7, 8];
+const EQUIP_QUALITY = { 2001: 1, 2002: 2 }; // 品质（1凡 2灵 3玄 4地 5天）
+const QUALITY_COLOR = { 1: '#c9ccd4', 2: '#4ade80', 3: '#60a5fa', 4: '#c084fc', 5: '#fbbf24' };
+const QUALITY_NAME = { 1: '凡品', 2: '灵品', 3: '玄品', 4: '地品', 5: '天品' };
+const PET_NAME = { 3001: '雪灵狐', 3002: '玄龟幼兽' };
+const PET_BASE = { 3001: { atk: 80, def: 0, hp: 0 }, 3002: { atk: 0, def: 0, hp: 120 } };
+const ITEM_NAME = { 5001: '灵石' };
+const ITEM_ICON = { 5001: 'iconMaterial' };
+// 登录页配置（文案/服务器/公告/客服，后续更换只改这里）
+const LOGIN = {
+  title: '尘霄问道',
+  subtitle: '仙侠挂机 · 一念成仙',
+  servers: [
+    { id: 1, name: '尘霄一区', desc: '推荐' },
+    { id: 2, name: '尘霄二区', desc: '新服' },
+    { id: 3, name: '尘霄三区', desc: '火爆' },
+  ],
+  notice: '开服公告：V1.0 正式上线，欢迎各位仙友踏入仙途！',
+  customer: '客服反馈：game.ct256.cn',
+  agreementUser: '用户协议',
+  agreementPrivacy: '隐私政策',
+};
+// 时装（外观，改变角色立绘，不影响属性）
+const FASHIONS = [
+  { id: 1, name: '白衣仙袍', img: 'hero' },
+  { id: 2, name: '青衫剑客', img: 'heroBlue' },
+  { id: 3, name: '金甲战神', img: 'heroGold' },
+  { id: 4, name: '赤袍大侠', img: 'heroRed' },
+  { id: 5, name: '红衣女侠', img: 'heroFemale' },
+  { id: 6, name: '蓝衫女侠', img: 'heroFemaleBlue' },
+];
+// 协议全文（弹框展示）
+const AGREEMENT_USER = [
+  '欢迎使用《尘霄问道》！',
+  '· 本游戏无充值内购，仅通过广告变现。',
+  '· 请遵守平台规则，文明游戏。',
+  '· 未成年人受国家网络游戏防沉迷系统保护。',
+  '· 请勿使用外挂、脚本等破坏游戏公平的行为。',
+];
+const AGREEMENT_PRIVACY = [
+  '我们依法收集以下信息用于提供服务：',
+  '· 微信 OpenID（登录鉴权、保存角色存档）',
+  '· 昵称、游戏数据（等级/装备/灵宠等）',
+  '· 不收集身份证、银行卡、通讯录、精确位置。',
+  '· 不会向第三方出售您的个人信息。',
+  '· 未成年人受防沉迷系统保护。',
+];
+
+function equipColor(id) { return QUALITY_COLOR[EQUIP_QUALITY[id]] || '#ffffff'; }
+function equipQualityName(id) { return QUALITY_NAME[EQUIP_QUALITY[id]] || ''; }
+function calcPetAttrs(q) {
+  const b = PET_BASE[q.id] || { atk: 0, def: 0, hp: 0 };
+  const lvMult = 1 + 0.2 * (q.lv - 1), starMult = 1 + 0.2 * q.star;
+  return { atk: Math.round(b.atk * lvMult * starMult), def: Math.round(b.def * lvMult), hp: Math.round(b.hp * lvMult) };
+}
+// 音效 + BGM（Web Audio 程序生成，无需音频文件）
+let audioCtx = null;
+let soundOn = true, bgmOn = true;
+try { soundOn = wx.getStorageSync('cxwd_sound') !== 0; bgmOn = wx.getStorageSync('cxwd_bgm') !== 0; } catch (e) {}
+let bgmTimer = null, bgmStarted = false;
+const BGM = [523, 587, 659, 784, 880, 784, 659, 587]; // 古风五声音阶循环
+
+function initAudio() { try { audioCtx = wx.createWebAudioContext(); } catch (e) { audioCtx = null; } }
+function playTone(freq, dur, type, vol) {
+  if (!audioCtx || !soundOn) return;
+  const t = audioCtx.currentTime;
+  const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.value = vol; g.gain.linearRampToValueAtTime(0, t + dur);
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(t); o.stop(t + dur);
+}
+function sndClick() { playTone(880, 0.06, 'sine', 0.18); }
+function sndHit() { playTone(200, 0.14, 'square', 0.22); }
+function sndCrit() { playTone(150, 0.2, 'sawtooth', 0.28); }
+function sndVictory() { playTone(523, 0.1, 'sine', 0.22); setTimeout(() => playTone(659, 0.1, 'sine', 0.22), 110); setTimeout(() => playTone(784, 0.25, 'sine', 0.22), 220); }
+function sndDodge() { playTone(1200, 0.06, 'sine', 0.14); }
+function sndOpen() { playTone(660, 0.06, 'sine', 0.13); }
+function sndClose() { playTone(440, 0.06, 'sine', 0.11); }
+function sndDrop() { playTone(587, 0.09, 'sine', 0.2); setTimeout(() => playTone(880, 0.12, 'sine', 0.2), 90); }
+function sndUpgrade() { playTone(523, 0.08, 'triangle', 0.2); setTimeout(() => playTone(784, 0.14, 'triangle', 0.2), 80); }
+function sndError() { playTone(180, 0.15, 'square', 0.16); }
+function startBGM() {
+  if (bgmStarted || !audioCtx || !bgmOn) return;
+  bgmStarted = true;
+  let i = 0;
+  const step = () => { if (!bgmOn) { bgmTimer = null; bgmStarted = false; return; } playTone(BGM[i % BGM.length], 0.5, 'sine', 0.06); i++; bgmTimer = setTimeout(step, 460); };
+  step();
+}
+function setSoundOn(v) { soundOn = v; try { wx.setStorageSync('cxwd_sound', v ? 1 : 0); } catch (e) {} }
+function setBgmOn(v) { bgmOn = v; try { wx.setStorageSync('cxwd_bgm', v ? 1 : 0); } catch (e) {} if (v) startBGM(); }
+function getSoundOn() { return soundOn; }
+function getBgmOn() { return bgmOn; }
+
+const audio = {
+  initAudio, playTone, startBGM,
+  sndClick, sndHit, sndCrit, sndVictory, sndDodge, sndOpen, sndClose, sndDrop, sndUpgrade, sndError,
+  setSoundOn, setBgmOn, getSoundOn, getBgmOn,
+};
 
 // ===== 画布 =====
 let SW = 375, SH = 667, DPR = 1, SAFE_TOP = 0, SAFE_BOTTOM = 0;
@@ -37,7 +158,8 @@ try { privacyAgreed = !!wx.getStorageSync(PRIVACY_KEY); } catch (e) {}
 let loginAgreed = false, curServer = 0;
 // 时装状态
 let curFashion = 0;
-try { const f = wx.getStorageSync('cxwd_fashion'); if (typeof f === 'number' && f >= 0) curFashion = f; } catch (e) {}
+try { const f = wx.getStorageSync('cxwd_fashion'); if (typeof f === 'number' && f >= 0 && f < FASHIONS.length) curFashion = f; } catch (e) {}
+function currentFashion() { return FASHIONS[curFashion] || FASHIONS[0]; }
 function achDone(a) {
   switch (a.id) {
     case 1: return stageProgress.cleared.length >= 1;
@@ -90,11 +212,120 @@ for (let i = 0; i < 26; i++) ambient.push({ x: Math.random() * SW, y: Math.rando
 let fade = 0;
 
 // 绘制工具 + 特效模块（依赖 ctx/IMG/particles/ambient，故在此加载）
-const drawMod = require('./js/draw.js')(ctx, IMG);
+const drawMod = (// 绘制工具（依赖 ctx 与 IMG，通过工厂函数注入）
+function (ctx, IMG) {
+  const theme = {
+    button: { radius: 4, bgTop: '#c9a24b', bgBottom: '#7a5a1e', border: '#e8c96a', borderWidth: 1.5, innerBorder: '#4a3416', highlight: 'rgba(255,235,180,0.22)', shadow: 'rgba(0,0,0,0.45)', textColor: '#f7ecc8', corner: true, cornerColor: '#e8c96a' },
+    panel: { border: 'rgba(200,162,75,0.35)', borderWidth: 1 },
+    accent: '#e8c96a', accentSoft: '#f7ecc8',
+  };
+  function coverDraw(k, x, y, w, h) { const im = IMG[k]; if (!im) return; const ir = im.width / im.height, r = w / h; let sx, sy, sw, sh; if (ir > r) { sh = im.height; sw = sh * r; sx = (im.width - sw) / 2; sy = 0; } else { sw = im.width; sh = sw / r; sx = 0; sy = (im.height - sh) / 2; } ctx.drawImage(im, sx, sy, sw, sh, x, y, w, h); }
+  function draw(k, x, y, w, h) { if (IMG[k]) ctx.drawImage(IMG[k], x, y, w, h); }
+  function text(s, x, y, size, color, align = 'center', bold = false) { ctx.font = (bold ? 'bold ' : '') + size + 'px sans-serif'; ctx.textAlign = align; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.lineJoin = 'round'; ctx.strokeText(s, x, y); ctx.fillStyle = color; ctx.fillText(s, x, y); }
+  function panel(x, y, w, h, color, r = 12) { ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.fill(); }
+  function roundRectPath(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function btn(b) {
+    const T = theme.button;
+    const r = T.radius;
+    ctx.fillStyle = T.shadow; roundRectPath(b.x + 1, b.y + 3, b.w, b.h, r); ctx.fill();
+    const g = ctx.createLinearGradient(b.x, b.y, b.x, b.y + b.h);
+    g.addColorStop(0, T.bgTop); g.addColorStop(1, T.bgBottom);
+    ctx.fillStyle = g; roundRectPath(b.x, b.y, b.w, b.h, r); ctx.fill();
+    ctx.fillStyle = T.highlight; roundRectPath(b.x + 3, b.y + 2, b.w - 6, b.h / 2 - 2, r - 2); ctx.fill();
+    ctx.strokeStyle = T.border; ctx.lineWidth = T.borderWidth; roundRectPath(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1, r); ctx.stroke();
+    ctx.strokeStyle = T.innerBorder; ctx.lineWidth = 1; roundRectPath(b.x + 3.5, b.y + 3.5, b.w - 7, b.h - 7, r - 2); ctx.stroke();
+    if (T.corner) {
+      ctx.fillStyle = T.cornerColor;
+      const s = 3;
+      ctx.fillRect(b.x + 2, b.y + 2, s, s); ctx.fillRect(b.x + b.w - 2 - s, b.y + 2, s, s);
+      ctx.fillRect(b.x + 2, b.y + b.h - 2 - s, s, s); ctx.fillRect(b.x + b.w - 2 - s, b.y + b.h - 2 - s, s, s);
+    }
+    const label = b.icon ? b.icon + ' ' + b.label : b.label;
+    text(label, b.x + b.w / 2, b.y + b.h / 2 + 5, 14, T.textColor, 'center', true);
+  }
+  function bar(x, y, w, h, color, ratio) { ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x, y, w, h); ctx.fillStyle = color; ctx.fillRect(x, y, w * Math.max(0, Math.min(1, ratio)), h); }
+  return { coverDraw, draw, text, panel, roundRectPath, btn, bar };
+})(ctx, IMG);
 const { coverDraw, draw, text, panel, roundRectPath, btn, bar } = drawMod;
-const fxMod = require('./js/fx.js')(ctx, particles, ambient);
+const fxMod = (// 战斗特效（粒子/氛围），依赖 ctx 与 particles/ambient 数组引用
+function (ctx, particles, ambient) {
+  function spawn(x, y, color, n = 40) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, sp = 150 + Math.random() * 200; particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60, life: 0, max: 0.5 + Math.random() * 0.5, color, size: 3 + Math.random() * 4, g: 420 }); } }
+  function renderAmbient(color) { ctx.globalCompositeOperation = 'lighter'; for (const p of ambient) { ctx.globalAlpha = 0.3 + 0.3 * Math.sin(p.ph + Date.now() * 0.002); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); } ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+  return { spawn, renderAmbient };
+})(ctx, particles, ambient);
 const { spawn, renderAmbient } = fxMod;
-const pagesMod = require('./js/pages.js')({ ctx, SW, SH, coverDraw, text, panel, btn, renderAmbient, audio, ACHIEVEMENTS, achDone });
+const pagesMod = (// 独立页面：设置 / 成就 / 隐私（工厂函数注入依赖，函数体内用同名局部变量）
+function (P) {
+  const { ctx, SW, SH, coverDraw, text, panel, btn, renderAmbient, audio, ACHIEVEMENTS, achDone } = P;
+
+  function renderPrivacy() {
+    coverDraw('bg', 0, 0, SW, SH);
+    ctx.fillStyle = 'rgba(8,16,30,0.9)'; ctx.fillRect(0, 0, SW, SH);
+    text('《尘霄问道》', SW / 2, 56, 24, '#ffd76a', 'center', true);
+    text('用户协议与隐私政策', SW / 2, 84, 16, '#fff', 'center', true);
+    panel(18, 104, SW - 36, SH - 270, 'rgba(15,25,45,0.92)', 14);
+    const lines = [
+      '欢迎游玩《尘霄问道》！请仔细阅读：',
+      '',
+      '【隐私政策】',
+      '· 登录需使用微信 OpenID 创建并保存角色存档。',
+      '· 收集：OpenID、昵称、游戏数据（等级/装备/灵宠等）。',
+      '· 不收集身份证、银行卡、通讯录、精确位置等敏感信息。',
+      '· 不会向任何第三方出售您的个人信息。',
+      '',
+      '【用户协议】',
+      '· 本游戏无充值内购，仅通过广告变现。',
+      '· 请遵守平台规则，文明游戏。',
+      '· 未成年人受国家网络游戏防沉迷系统保护。',
+      '',
+      '点击「同意并继续」即表示您已阅读并同意以上全部内容。',
+    ];
+    lines.forEach((s, i) => text(s, 34, 132 + i * 22, 12, s.indexOf('【') === 0 ? '#ffd76a' : '#e0e0e0', 'left', s.indexOf('【') === 0));
+    btn({ x: 30, y: SH - 152, w: SW - 60, h: 50, label: '同意并继续' });
+    btn({ x: 30, y: SH - 92, w: SW - 60, h: 40, label: '不同意' });
+  }
+
+  function renderSettings() {
+    coverDraw('bg', 0, 0, SW, SH);
+    ctx.fillStyle = 'rgba(10,22,40,0.6)'; ctx.fillRect(0, 0, SW, SH);
+    renderAmbient('#ffe9a0');
+    text('设置', SW / 2, 46, 22, '#ffd76a', 'center', true);
+    btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
+    panel(15, 70, SW - 30, 56, 'rgba(15,25,45,0.85)', 12);
+    text('音效', 30, 92, 14, '#fff', 'left', true);
+    text(audio.getSoundOn() ? '开' : '关', SW - 40, 92, 14, audio.getSoundOn() ? '#4ade80' : '#f87171', 'right', true);
+    panel(15, 134, SW - 30, 56, 'rgba(15,25,45,0.85)', 12);
+    text('背景音乐', 30, 156, 14, '#fff', 'left', true);
+    text(audio.getBgmOn() ? '开' : '关', SW - 40, 156, 14, audio.getBgmOn() ? '#4ade80' : '#f87171', 'right', true);
+    btn({ x: 15, y: 210, w: SW - 30, h: 48, label: '清缓存并重置引导' });
+    btn({ x: 15, y: 268, w: SW - 30, h: 48, label: '用户协议与隐私政策' });
+    btn({ x: 15, y: 326, w: SW - 30, h: 48, label: '分享给好友' });
+    btn({ x: 15, y: 384, w: SW - 30, h: 48, label: '成就' });
+    btn({ x: 15, y: 442, w: SW - 30, h: 48, label: '退出登录' });
+    text('《尘霄问道》v1.0.0', SW / 2, 500, 12, '#9ab', 'center');
+  }
+
+  function renderAchievements() {
+    coverDraw('bg', 0, 0, SW, SH);
+    ctx.fillStyle = 'rgba(10,22,40,0.6)'; ctx.fillRect(0, 0, SW, SH);
+    renderAmbient('#ffe9a0');
+    text('成就', SW / 2, 46, 22, '#ffd76a', 'center', true);
+    btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
+    const done = ACHIEVEMENTS.filter(achDone).length;
+    text('已达成 ' + done + ' / ' + ACHIEVEMENTS.length, SW / 2, 80, 13, '#9ab', 'center');
+    ACHIEVEMENTS.forEach((a, i) => {
+      const py = 100 + i * 78;
+      const ok = achDone(a);
+      panel(15, py, SW - 30, 68, ok ? 'rgba(25,42,70,0.9)' : 'rgba(15,22,35,0.7)', 12);
+      if (ok) { ctx.strokeStyle = 'rgba(74,222,128,0.5)'; ctx.lineWidth = 1.5; ctx.strokeRect(15, py, SW - 30, 68); }
+      text((ok ? '🏆 ' : '🔒 ') + a.name, 30, py + 26, 15, ok ? '#ffd76a' : '#777', 'left', true);
+      text(a.desc, 30, py + 48, 12, ok ? '#e0e0e0' : '#666', 'left');
+      text(ok ? '已达成' : '未达成', SW - 30, py + 34, 12, ok ? '#4ade80' : '#777', 'right');
+    });
+  }
+
+  return { renderPrivacy, renderSettings, renderAchievements };
+})({ ctx, SW, SH, coverDraw, text, panel, btn, renderAmbient, audio, ACHIEVEMENTS, achDone });
 const { renderPrivacy, renderSettings, renderAchievements } = pagesMod;
 
 // ===== 弹窗 =====
@@ -302,7 +533,7 @@ function renderHome() {
   ctx.translate(SW / 2, 92 + 142);
   ctx.rotate(heroAngle * 0.35);
   if (heroAngle < 0) ctx.scale(-1, 1);
-  draw(FASHIONS[curFashion].img, -80, -142, 160, 284);
+  draw(currentFashion().img, -80, -142, 160, 284);
   const wornWpn = equipData.find(q => q.pos === 1);
   const wornArm = equipData.find(q => q.pos === 3);
   if (wornWpn) draw('iconWeapon', 18, -38, 34, 34);
@@ -630,7 +861,7 @@ function renderFashion() {
   renderAmbient('#ffe9a0');
   text('时装', SW / 2, 46, 22, '#ffd76a', 'center', true);
   btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
-  const cf = FASHIONS[curFashion];
+  const cf = currentFashion();
   draw(cf.img, SW / 2 - 70, 60, 140, 248);
   text(cf.name + '（穿戴中）', SW / 2, 320, 14, '#e8c96a', 'center', true);
   const cw = 100, ch = 112, g = 10, ox = 22, oy = 344;
@@ -797,7 +1028,9 @@ async function reportAd() {
 }
 wx.onTouchStart((e) => {
   startBGM();
-  const t = e.touches[0]; const x = t.clientX, y = t.clientY;
+  const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+  const x = t ? (t.clientX !== undefined ? t.clientX : t.x) : 0;
+  const y = t ? (t.clientY !== undefined ? t.clientY : t.y) : 0;
   if (modal) {
     const mw = SW - 50, mh = Math.min(SH - 200, 400), mx = 25, my = 130;
     const L = modalButtonLayout();
@@ -822,7 +1055,7 @@ wx.onTouchStart((e) => {
     if (y >= SH - 92 && y <= SH - 52) { sndClick(); showModal('提示', ['需同意协议后才能进入游戏'], [{ label: '知道了', fn: closeModal }]); return; }
     return;
   }
-  if (scene === 'home' && !modal && !guide && x >= SW / 2 - 95 && x <= SW / 2 + 95 && y >= 80 && y <= 405) { draggingHero = true; dragStartX = x; return; }
+  if (scene === 'home' && !modal && !guide && x >= SW / 2 - 95 && x <= SW / 2 + 95 && y >= 80 && y <= 405) { heroAngle = x < SW / 2 ? -0.7 : 0.7; sndClick(); return; }
   if (guide && scene === 'home' && !modal) {
     if (guide.phase === 'intro') {
       if (x >= SW / 2 - 62 && x <= SW / 2 + 62 && y >= 396 && y <= 440) { sndClick(); guide = { phase: 'battle' }; }
@@ -960,14 +1193,6 @@ wx.onTouchStart((e) => {
   if (scene === 'home' && x >= 28 && x <= 150 && y >= 550 && y <= 576) { sndClick(); doAd(); return; }
   for (const b of buttons) { if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { sndClick(); if (mainActions[b.label]) mainActions[b.label](); return; } }
 });
-
-wx.onTouchMove((e) => {
-  if (draggingHero && e.touches.length) {
-    const dx = e.touches[0].clientX - dragStartX;
-    heroAngle = Math.max(-1, Math.min(1, dx / 60));
-  }
-});
-wx.onTouchEnd(() => { draggingHero = false; });
 
 // ===== 主循环 =====
 let lastT = Date.now();

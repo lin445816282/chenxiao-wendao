@@ -523,9 +523,31 @@ async function refine() { const q = selectedEquip(); if (!q) return; await send(
 async function decompose() { const q = selectedEquip(); if (!q) return; await send(4008, [0x08].concat(wv(q.uid))); sndUpgrade(); addLog('已分解 ' + (EQUIP_NAME[q.id] || '装备') + ' → 铜钱'); equipPopup = null; await doLogin(); await fetchEquip(); }
 function petName() { const p = petData.find(q => q.combat); return p ? (PET_NAME[p.id] || '灵宠') : '灵宠'; }
 function petImg() { const p = petData.find(q => q.combat); return p ? (PET_IMG[p.id] || 'pet') : 'pet'; }
+// 装备所属阶（1-10），用于套装判定
+function equipTier(id) {
+  if (id >= 2201 && id <= 2210) return id - 2200;
+  if (id >= 2401 && id <= 2410) return id - 2400;
+  if (id >= 2501 && id <= 2510) return id - 2500;
+  if (id >= 2601 && id <= 2610) return id - 2600;
+  if (id >= 2701 && id <= 2710) return id - 2700;
+  if (id >= 2801 && id <= 2810) return id - 2800;
+  if (id >= 2001 && id <= 2020) return ((id - 2001) >> 1) + 1;
+  return 0;
+}
+// 套装信息：取同阶穿戴件数最多的那一阶
+function setBonusInfo() {
+  const cnt = {};
+  for (const q of equipData) if (q.pos) { const t = equipTier(q.id); if (t) cnt[t] = (cnt[t] || 0) + 1; }
+  let tier = 0, count = 0;
+  for (const t in cnt) if (cnt[t] > count) { count = cnt[t]; tier = Number(t); }
+  const pct = count >= 8 ? 20 : count >= 6 ? 12 : count >= 4 ? 6 : 0;
+  return { tier, count, pct };
+}
 function calcAttrs() {
   let atk = 200 + (level - 1) * 30, def = 50 + (level - 1) * 8, hp = 2000 + (level - 1) * 300;
   for (const q of equipData) { if (!q.pos) continue; const b = EQUIP_BASE[q.id] || { atk: 0, def: 0, hp: 0 }; atk += b.atk + q.s * 5 + q.r * 3; def += b.def; hp += b.hp; }
+  const sb = setBonusInfo();
+  if (sb.pct > 0) { atk = Math.round(atk * (100 + sb.pct) / 100); def = Math.round(def * (100 + sb.pct) / 100); hp = Math.round(hp * (100 + sb.pct) / 100); }
   return { atk, def, hp };
 }
 function equipAttrs(q) {
@@ -538,7 +560,8 @@ async function showAttrs() {
   await fetchEquip();
   const a = calcAttrs();
   const worn = equipData.filter(q => q.pos).map(q => POS_NAME[EQUIP_POS[q.id]] + ':' + (EQUIP_NAME[q.id] || '装备'));
-  showModal('属性', ['境界 ' + realmName(level) + ' · 战力 ' + power, '攻击 ' + a.atk, '防御 ' + a.def, '生命 ' + a.hp, '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
+  const sb = setBonusInfo();
+  showModal('属性', ['境界 ' + realmName(level) + ' · 战力 ' + power, '攻击 ' + a.atk + '　防御 ' + a.def + '　生命 ' + a.hp, (sb.pct > 0 ? '套装 ' + sb.tier + '阶 ' + sb.count + '/8 件 · 攻防血 +' + sb.pct + '%' : '套装未激活（同阶 ≥4 件触发）'), '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
 }
 // 人物界面：按住左右拖动 360° 旋转查看人物（2.5D 广告牌旋转）
 function drawHeroSpinning(img, cx, cy, w, h, rot) {
@@ -745,6 +768,9 @@ function renderEquip() {
   // 背包装备
   const bag = equipData.filter(q => !q.pos);
   text('背包（' + bag.length + ' 件，点击选中）', ox, 222, 12, '#ffd76a', 'left', true);
+  const sb = setBonusInfo();
+  if (sb.pct > 0) text('套装 ' + sb.tier + '阶 ' + sb.count + '/8 +' + sb.pct + '%', SW - 15, 222, 12, '#7cc4ff', 'right', true);
+  else text('套装未激活(同阶≥4件)', SW - 15, 222, 11, '#9ab', 'right', true);
   const ly = 234, lh = 36, lg = 3;
   bag.slice(0, 6).forEach((q, i) => {
     const py = ly + i * (lh + lg);

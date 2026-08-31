@@ -15,6 +15,40 @@ const (
 	attrHP  = 3
 )
 
+// equipTier 装备所属阶（1-10），用于套装判定。
+func equipTier(id int32) int32 {
+	switch {
+	case id >= 2201 && id <= 2210:
+		return id - 2200 // 头盔
+	case id >= 2401 && id <= 2410:
+		return id - 2400 // 裤子
+	case id >= 2501 && id <= 2510:
+		return id - 2500 // 鞋子
+	case id >= 2601 && id <= 2610:
+		return id - 2600 // 项链
+	case id >= 2701 && id <= 2710:
+		return id - 2700 // 戒指
+	case id >= 2801 && id <= 2810:
+		return id - 2800 // 护符
+	case id >= 2001 && id <= 2020:
+		return (id-2001)/2 + 1 // 武器/衣服
+	}
+	return 0
+}
+
+// setBonusPct 按同阶穿戴件数返回套装加成百分比（4件6% / 6件12% / 8件20%）。
+func setBonusPct(count int32) int64 {
+	switch {
+	case count >= 8:
+		return 20
+	case count >= 6:
+		return 12
+	case count >= 4:
+		return 6
+	}
+	return 0
+}
+
 // heroUnit 装配主角属性：裸装基础（随等级成长）+ 已穿戴装备（基础属性 + 随机词条 + 强化/精炼加成）。
 func (s *Service) heroUnit(playerID int64) combat.Unit {
 	// 裸装基础随等级成长：攻击 +30/级、防御 +8/级、生命 +300/级
@@ -26,10 +60,12 @@ func (s *Service) heroUnit(playerID int64) combat.Unit {
 	def := int64(50) + (lv-1)*8
 	hp := int64(2000) + (lv-1)*300
 	list, _ := store.ListEquip(s.DB, playerID)
+	tierCounts := make(map[int32]int32)
 	for _, e := range list {
 		if e.Pos == 0 { // 仅统计已穿戴装备
 			continue
 		}
+		tierCounts[equipTier(e.EquipID)]++
 		eq, ok := s.Config.GetEquip(e.EquipID)
 		if !ok {
 			continue
@@ -63,6 +99,18 @@ func (s *Service) heroUnit(playerID int64) combat.Unit {
 		}
 		// 强化 +5 攻击/级，精炼 +3 攻击/级（成长反馈集中在输出端）
 		atk += int64(e.StrengthenLevel)*5 + int64(e.RefineLevel)*3
+	}
+	// 套装加成：取同阶穿戴件数最多的那一阶（4/6/8 件触发百分比加成）
+	bestCount := int32(0)
+	for _, c := range tierCounts {
+		if c > bestCount {
+			bestCount = c
+		}
+	}
+	if pct := setBonusPct(bestCount); pct > 0 {
+		atk = atk * (100 + pct) / 100
+		def = def * (100 + pct) / 100
+		hp = hp * (100 + pct) / 100
 	}
 	return combat.Unit{
 		UID: playerID, Kind: combat.KindRole, Name: "主角",

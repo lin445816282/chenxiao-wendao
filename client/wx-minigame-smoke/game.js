@@ -81,7 +81,7 @@ load('hero', 'images/hero_male.png'); load('monster', 'images/monster_basic.png'
 function addLog(s) { log.unshift(s); if (log.length > 3) log.pop(); }
 
 // ===== 特效 =====
-let particles = [], slashes = [], shake = 0, arcLife = 0, flashHero = 0, flashMonster = 0, flashPet = 0, combo = 0, battleSpeed = 1;
+let particles = [], slashes = [], shake = 0, arcLife = 0, flashHero = 0, flashMonster = 0, flashPet = 0, combo = 0, battleSpeed = 1, bossFlash = 0, levelUpFlash = 0;
 let ambient = [];
 for (let i = 0; i < 26; i++) ambient.push({ x: Math.random() * SW, y: Math.random() * SH, r: 1 + Math.random() * 2.5, sp: 10 + Math.random() * 25, ph: Math.random() * 6.28 });
 let fade = 0;
@@ -166,7 +166,7 @@ async function doLogin() {
   const [, body] = await send(1000, []);
   let hr = false, role = null; for (const f of p(body)) { if (f.n === 3) hr = (f.v === 1n); if (f.n === 4) role = f.d; }
   hasRole = hr;
-  if (role) { for (const f of p(role)) { if (f.n === 2) nickname = bytesToStr(f.d); if (f.n === 4) level = Number(f.v); if (f.n === 5) exp = Number(f.v); if (f.n === 6) copper = Number(f.v); if (f.n === 7) power = Number(f.v); } if (prevLevel && level > prevLevel) { sndUpgrade(); addLog('等级提升！Lv.' + prevLevel + ' → Lv.' + level); } prevLevel = level; if (!welcomed) { welcomed = true; addLog('欢迎回来，' + nickname); } if (!tutorialDone && !guide) guide = { phase: 'intro' }; }
+  if (role) { for (const f of p(role)) { if (f.n === 2) nickname = bytesToStr(f.d); if (f.n === 4) level = Number(f.v); if (f.n === 5) exp = Number(f.v); if (f.n === 6) copper = Number(f.v); if (f.n === 7) power = Number(f.v); } if (prevLevel && level > prevLevel) { sndUpgrade(); levelUpFlash = 1; addLog('等级提升！Lv.' + prevLevel + ' → Lv.' + level); } prevLevel = level; if (!welcomed) { welcomed = true; addLog('欢迎回来，' + nickname); } if (!tutorialDone && !guide) guide = { phase: 'intro' }; }
   else if (!hr) { /* 自动建号 */ const nb = utf8('尘霄散修'); await send(1002, [0x0A, nb.length].concat(nb)); await doLogin(); }
 }
 async function doClaim() { const [, body] = await send(2006, []); let r = []; for (const f of p(body)) if (f.n === 2) { const s = p(f.d); r.push((s[0].v === 2n ? '修为' : '铜钱') + s[1].v); } addLog('在线挂机收益：' + (r.join(' ') || '无')); await doLogin(); }
@@ -312,6 +312,11 @@ function renderHome() {
   text('— 记录 —', SW / 2, 632, 12, '#9ab', 'center');
   log.forEach((s, i) => text(s, 32, 656 + i * 24, 13, '#e8e8e8', 'left'));
   layout(); for (const b of buttons) btn(b);
+  if (levelUpFlash > 0) {
+    ctx.fillStyle = 'rgba(255,215,106,' + (levelUpFlash * 0.3) + ')';
+    ctx.fillRect(0, 0, SW, SH);
+    text('✨ 等级提升 ✨', SW / 2, SH / 2, 30, 'rgba(255,240,180,' + levelUpFlash + ')', 'center', true);
+  }
 }
 function renderStages() {
   coverDraw('bg', 0, 0, SW, SH);
@@ -537,6 +542,11 @@ function renderBattle() {
     panel(SW / 2 - 60, py + ph - 46, 120, 40, 'rgba(37,99,235,0.95)', 20);
     text('返回', SW / 2, py + ph - 20, 16, '#fff', 'center', true);
   }
+  if (bossFlash > 0) {
+    ctx.fillStyle = 'rgba(255,45,45,' + (bossFlash * 0.45) + ')';
+    ctx.fillRect(0, 0, SW, SH);
+    if (bossFlash > 0.3) text('⚠ 魔神之怒', SW / 2, GROUND - 280, 24, 'rgba(255,120,120,' + bossFlash + ')', 'center', true);
+  }
   ctx.restore();
 }
 // renderPrivacy 已抽到 js/pages.js
@@ -638,6 +648,8 @@ function update(dt) {
   if (flashHero > 0) flashHero -= dt;
   if (flashMonster > 0) flashMonster -= dt;
   if (flashPet > 0) flashPet -= dt;
+  if (bossFlash > 0) bossFlash -= dt * 2;
+  if (levelUpFlash > 0) levelUpFlash -= dt * 1.5;
   for (const p of particles) { p.life += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += p.g * dt; p.vx *= 0.9; }
   particles = particles.filter(p => p.life < p.max);
   for (const s of slashes) s.life += dt;
@@ -660,7 +672,8 @@ function update(dt) {
       slashes.push({ x: fx, y: GROUND - 130, dx: tx - fx, life: 0, max: 0.2, crit: act.crit });
       spawn(tx, GROUND - 90, act.crit ? '#ffcc33' : '#ff6a00');
       if (toMonster) flashMonster = 0.22; else if (targetIsPet) flashPet = 0.22; else flashHero = 0.22;
-      shake = act.crit ? 12 : 7; arcLife = 0.35;
+      if (!toMonster && battle.stage && battle.stage.boss) { bossFlash = 0.5; shake = 14; } else shake = act.crit ? 12 : 7;
+      arcLife = 0.35;
     }
     battle.pushed++;
   }

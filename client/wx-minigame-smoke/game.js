@@ -439,7 +439,17 @@ async function doLogin() {
   if (role) { for (const f of p(role)) { if (f.n === 2) nickname = bytesToStr(f.d); if (f.n === 4) level = Number(f.v); if (f.n === 5) exp = Number(f.v); if (f.n === 6) copper = Number(f.v); if (f.n === 7) power = Number(f.v); } if (prevLevel && level > prevLevel) { sndUpgrade(); levelUpFlash = 1; addLog('等级提升！Lv.' + prevLevel + ' → Lv.' + level); } prevLevel = level; if (!welcomed) { welcomed = true; addLog('欢迎回来，' + nickname); } fetchEquip(); fetchPet(); if (!tutorialDone && !guide) guide = { phase: 'intro' }; }
   else if (!hr) { /* 自动建号 */ const nb = utf8('尘霄散修'); await send(1002, [0x0A, nb.length].concat(nb)); await doLogin(); }
 }
-async function doClaim() { const [, body] = await send(2006, []); let r = []; for (const f of p(body)) if (f.n === 2) { const s = p(f.d); r.push((s[0].v === 2n ? '修为' : '铜钱') + s[1].v); } addLog('在线挂机收益：' + (r.join(' ') || '无')); await doLogin(); }
+async function doClaim() {
+  const [, body] = await send(2006, []);
+  const r = [];
+  for (const f of p(body)) if (f.n === 2) {
+    let id = 0, c = 0;
+    for (const x of p(f.d)) { if (x.n === 1) id = Number(x.v); if (x.n === 2) c = Number(x.v); }
+    r.push((id === 2 ? '修为' : '铜钱') + c);
+  }
+  addLog('在线挂机收益：' + (r.join(' ') || '无'));
+  await doLogin();
+}
 async function doBattle(stageId, stageType) {
   const body = [0x08].concat(wv(stageType), [0x10]).concat(wv(stageId)); // field1=stage_type, field2=stage_id
   const [, resp] = await send(3000, body);

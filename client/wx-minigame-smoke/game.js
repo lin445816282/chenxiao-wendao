@@ -627,21 +627,24 @@ function drawHeroSpinning(img, cx, cy, w, h, rot) {
   const mirrorSample = backFace && !backImg;
   const sinT = Math.abs(Math.sin(theta)); // 0 正面/背面 → 1 侧面
   const cosT = Math.abs(Math.cos(theta)); // 1 正面/背面 → 0 侧面
-  const N = 24, R = w / 2, sws = im.width / N;
+  const N = 32, R = w / 2, D = w * 3.2, sws = im.width / N; // D=相机距离(透视强度)
   const slices = [];
   for (let i = 0; i < N; i++) {
     const uc = (i + 0.5) / N, u = uc - 0.5;           // u ∈ -0.5..0.5
     const phi = Math.asin(Math.max(-1, Math.min(1, 2 * u))); // 柱面角
-    const depth = Math.cos(phi - theta);
-    if (depth <= 0.02) continue;
-    // 柱面投影（体积）与平铺（无变形）按 sinT 混合
-    const cylX = R * Math.sin(phi - theta);
-    const cylW = sws * Math.max(0, depth);
+    const facing = Math.cos(phi - theta);
+    if (facing <= 0.02) continue;
+    const Z = R * Math.cos(phi - theta);              // 该片深度(朝观察者为正)
+    const ps = D / (D - Z);                           // 透视缩放
+    // 柱面透视投影 与 平铺(正面零变形) 按 sinT 混合
+    const cylX = R * Math.sin(phi - theta) * ps;
+    const cylW = sws * facing * ps;
     const flatX = u * w * cosT;
     const x = flatX * (1 - sinT) + cylX * sinT;
-    const dw = Math.max(0.5, sws * cosT * (1 - sinT) + cylW * sinT);
+    const dw = Math.max(0.4, (sws * cosT) * (1 - sinT) + cylW * sinT);
+    const dh = h * (1 + (ps - 1) * sinT);             // 垂直透视(仅转动时显现)
     const sxs = mirrorSample ? (1 - (i + 1) / N) * im.width : (i / N) * im.width;
-    slices.push({ x, dw, depth, sxs });
+    slices.push({ x, dw, dh, depth: Z, sxs });
   }
   if (!slices.length) return;
   // 可见范围自动居中，避免旋转时人物漂移
@@ -655,7 +658,7 @@ function drawHeroSpinning(img, cx, cy, w, h, rot) {
   if (heroOffscreen.height !== h) heroOffscreen.height = h;
   const g = heroOffscreen.getContext('2d');
   g.clearRect(0, 0, w, h);
-  for (const s of slices) g.drawImage(im, s.sxs, 0, sws, im.height, w / 2 + s.x - centerOff - s.dw / 2, 0, s.dw, h);
+  for (const s of slices) g.drawImage(im, s.sxs, 0, sws, im.height, w / 2 + s.x - centerOff - s.dw / 2, h - s.dh, s.dw, s.dh);
   // 圆柱明暗：两侧略暗、中心保留，侧面转动时更明显
   g.globalCompositeOperation = 'source-atop';
   const edge = (0.18 + 0.14 * sinT).toFixed(3);

@@ -606,32 +606,63 @@ async function showAttrs() {
   showModal('战力明细', ['境界 ' + realmName(level) + ' · 总战力 ' + power, '攻击 ' + a.atk + '　防御 ' + a.def + '　生命 ' + a.hp, '— 战力来源 —', '基础(等级) ' + bd.basePower, '装备 ' + bd.eqPower + (sb.pct > 0 ? '　套装 +' + bd.setPower + ' (' + sb.pct + '%)' : '　套装 未激活'), '灵宠 ' + bd.petPower, '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
 }
 // 人物界面：按住左右拖动 360° 旋转查看人物。
-// 采用「圆柱体切片映射」近似真实 3D 体型：把立绘贴在半个圆柱表面，
-// 旋转时按柱面几何重投影并做远近遮挡，产生体积感而非纸片缩放。
+// 采用「平铺 + 圆柱投影混合」的 2.5D 方案：
+//   · 正面(0°/180°)完全平铺，零变形，与立绘原图一致；
+//   · 随转动逐渐过渡到柱面重投影（含体积），侧面呈现身体厚度而非纸片；
+//   · 可见范围自动居中，避免旋转时人物漂移；
+//   · 离屏画布叠加圆柱阴影，增强立体感。
+let heroOffscreen = null;
 function drawHeroSpinning(img, cx, cy, w, h, rot) {
   const im = IMG[img];
   if (!im) { draw(img, cx - w / 2, cy - h / 2, w, h); return; }
-  // 归一化到 [-π, π]，并拆出「背面」：背面用镜像采样显示（前像翻转）
+  // 归一化到 [-π, π]，并拆出「背面」（背面镜像采样）
   let theta = ((rot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
   let mirror = false;
   if (theta > Math.PI / 2) { theta -= Math.PI; mirror = true; }
   else if (theta < -Math.PI / 2) { theta += Math.PI; mirror = true; }
-  const N = 24;             // 纵向切片数（越多越平滑）
-  const R = w * 0.5;        // 圆柱半径 = 半宽，立绘覆盖整个前半柱面
-  const sws = im.width / N; // 每片源宽度
+  const sinT = Math.abs(Math.sin(theta)); // 0 正面/背面 → 1 侧面
+  const cosT = Math.abs(Math.cos(theta)); // 1 正面/背面 → 0 侧面
+  const N = 24, R = w / 2, sws = im.width / N;
   const slices = [];
   for (let i = 0; i < N; i++) {
-    const uc = (i + 0.5) / N;                       // 纹理中心 0..1
-    const phi = Math.asin(Math.max(-1, Math.min(1, 2 * uc - 1))); // 柱面角 -90°..90°
-    const depth = Math.cos(phi - theta);            // 该片面向观察者的深度
-    if (depth <= 0.02) continue;                    // 背面不可见
-    const sx = cx + R * Math.sin(phi - theta);      // 屏幕 x
-    const dw = sws * depth;                          // 透视收缩后的片宽
+    const uc = (i + 0.5) / N, u = uc - 0.5;           // u ∈ -0.5..0.5
+    const phi = Math.asin(Math.max(-1, Math.min(1, 2 * u))); // 柱面角
+    const depth = Math.cos(phi - theta);
+    if (depth <= 0.02) continue;
+    // 柱面投影（体积）与平铺（无变形）按 sinT 混合
+    const cylX = R * Math.sin(phi - theta);
+    const cylW = sws * Math.max(0, depth);
+    const flatX = u * w * cosT;
+    const x = flatX * (1 - sinT) + cylX * sinT;
+    const dw = Math.max(0.5, sws * cosT * (1 - sinT) + cylW * sinT);
     const sxs = mirror ? (1 - (i + 1) / N) * im.width : (i / N) * im.width;
-    slices.push({ sx: sx - dw / 2, dw, depth, sxs });
+    slices.push({ x, dw, depth, sxs });
   }
-  slices.sort((a, b) => a.depth - b.depth); // 远→近绘制，正确遮挡
-  for (const s of slices) ctx.drawImage(im, s.sxs, 0, sws, im.height, s.sx, cy - h / 2, s.dw, h);
+  if (!slices.length) return;
+  // 可见范围自动居中，避免旋转时人物漂移
+  let minX = Infinity, maxX = -Infinity;
+  for (const s of slices) { minX = Math.min(minX, s.x - s.dw / 2); maxX = Math.max(maxX, s.x + s.dw / 2); }
+  const centerOff = (minX + maxX) / 2;
+  slices.sort((a, b) => a.depth - b.depth); // 远→近绘制
+  // 离屏画布：绘制角色 + 圆柱阴影（source-atop 只作用于不透明像素）
+  if (!heroOffscreen) { try { heroOffscreen = wx.createOffscreenCanvas ? wx.createOffscreenCanvas({ type: '2d', width: w, height: h }) : wx.createCanvas(); } catch (e) { heroOffscreen = wx.createCanvas(); } }
+  if (heroOffscreen.width !== w) heroOffscreen.width = w;
+  if (heroOffscreen.height !== h) heroOffscreen.height = h;
+  const g = heroOffscreen.getContext('2d');
+  g.clearRect(0, 0, w, h);
+  for (const s of slices) g.drawImage(im, s.sxs, 0, sws, im.height, w / 2 + s.x - centerOff - s.dw / 2, 0, s.dw, h);
+  // 圆柱明暗：两侧略暗、中心保留，侧面转动时更明显
+  g.globalCompositeOperation = 'source-atop';
+  const edge = (0.18 + 0.14 * sinT).toFixed(3);
+  const grad = g.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0, 'rgba(0,0,0,' + edge + ')');
+  grad.addColorStop(0.28, 'rgba(0,0,0,0)');
+  grad.addColorStop(0.72, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,' + edge + ')');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, w, h);
+  g.globalCompositeOperation = 'source-over';
+  ctx.drawImage(heroOffscreen, 0, 0, w, h, cx - w / 2, cy - h / 2, w, h);
 }
 async function doHero() { await fetchEquip(); heroRot = 0; scene = 'hero'; fade = 0; }
 function renderHero() {
@@ -643,7 +674,8 @@ function renderHero() {
   btn({ x: SW - 87, y: 16, w: 72, h: 36, label: '换装' });
   // 人物主体（可 360° 旋转）
   const cx = SW / 2, cy = 330;
-  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, cy + 150, 86, 14, 0, 0, Math.PI * 2); ctx.fill();
+  const appW = Math.max(0.32, Math.abs(Math.cos(heroRot))); // 旋转时影子随之收窄
+  ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.ellipse(cx, cy + 150, 24 + 62 * appW, 14, 0, 0, Math.PI * 2); ctx.fill();
   drawHeroSpinning(currentFashion().img, cx, cy, 176, 300, heroRot);
   const wornWpn = equipData.find(q => q.pos === 1);
   if (wornWpn) draw('iconWeapon', cx + 46, cy + 40, 40, 40);

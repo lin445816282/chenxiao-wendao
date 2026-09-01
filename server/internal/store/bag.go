@@ -65,6 +65,16 @@ func DeductBagItem(db *sql.DB, playerID int64, itemUID int64, count int64) (int6
 	return newCount, nil
 }
 
+// DeductBagItemByID 按物品 ID 扣减背包数量（t_bag_item 对 player+item 唯一），返回剩余数量。
+func DeductBagItemByID(db *sql.DB, playerID int64, itemID int32, count int64) (int64, error) {
+	var uid int64
+	err := db.QueryRow(`SELECT id FROM t_bag_item WHERE player_id = ? AND item_id = ? AND count >= ?`, playerID, itemID, count).Scan(&uid)
+	if err != nil {
+		return 0, fmt.Errorf("材料不足")
+	}
+	return DeductBagItem(db, playerID, uid, count)
+}
+
 // ListBag 列出玩家背包（数量 > 0）。
 func ListBag(db *sql.DB, playerID int64) ([]BagItem, error) {
 	rows, err := db.Query(

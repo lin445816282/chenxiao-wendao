@@ -45,8 +45,8 @@ const PET_NAME = { 3001: '雪灵狐', 3002: '玄龟幼兽', 3003: '赤炎狮', 3
 const PET_BASE = { 3001: { atk: 80, def: 0, hp: 0 }, 3002: { atk: 0, def: 0, hp: 120 }, 3003: { atk: 200, def: 0, hp: 0 }, 3004: { atk: 320, def: 0, hp: 0 }, 3005: { atk: 500, def: 0, hp: 0 }, 3006: { atk: 780, def: 0, hp: 0 }, 3007: { atk: 1200, def: 0, hp: 0 }, 3008: { atk: 0, def: 0, hp: 2200 }, 3009: { atk: 0, def: 0, hp: 3600 }, 3010: { atk: 5600, def: 0, hp: 0 } };
 const PET_IMG = { 3001: 'pet', 3002: 'petXuanwu', 3003: 'petFire', 3004: 'petIce', 3005: 'petGold', 3006: 'petShadow', 3007: 'petBlood', 3008: 'petJade', 3009: 'petHoly', 3010: 'petThunder' };
 const MAX_LEVEL = 100; // 角色等级上限
-const ITEM_NAME = { 5001: '灵石' };
-const ITEM_ICON = { 5001: 'iconMaterial' };
+const ITEM_NAME = { 5001: '灵石', 5002: '灵兽丹', 5003: '进化石' };
+const ITEM_ICON = { 5001: 'iconMaterial', 5002: 'iconPetFood', 5003: 'iconEvolveStone' };
 // 境界称号：按等级划分，纯展示（仙侠风味）
 function realmName(lv) {
   if (lv >= 90) return '真仙境';
@@ -174,6 +174,7 @@ let scene = 'home', connected = false, hasRole = false;
 let nickname = '', level = 0, exp = 0, copper = 0, power = 0, welcomed = false, prevLevel = 0, heroAngle = 0, draggingHero = false, dragStartX = 0;
 let heroRot = 0, heroDragLastX = 0, heroDragging = false; // 人物界面 360° 旋转
 let stagesScroll = 0, stagesDragY = 0, stagesDragging = false, stagesTap = null; // 关卡列表滚动
+let petScroll = 0, petDragY = 0, petDragging = false, petTap = null; // 灵宠列表滚动
 let rewardedAd = null, adBizId = '';
 let log = [], buttons = [], battle = null, modal = null;
 let equipData = [], petData = [], mailData = [], bagItems = [], selIdx = 0, selEquip = null, equipPopup = null;
@@ -235,13 +236,13 @@ load('bg', 'images/bg_home.png'); load('bgBattle', 'images/bg_battle.png');
 load('hero', 'images/hero_male.png'); load('heroFemale', 'images/hero_female.png'); load('heroBlue', 'images/hero_blue.png'); load('heroGold', 'images/hero_gold.png'); load('heroRed', 'images/hero_red.png'); load('heroFemaleBlue', 'images/hero_female_blue.png'); load('heroPurple', 'images/hero_purple.png'); load('heroTeal', 'images/hero_teal.png'); load('heroOrange', 'images/hero_orange.png'); load('heroPink', 'images/hero_pink.png'); load('heroViolet', 'images/hero_violet.png'); load('heroCyan', 'images/hero_cyan.png');
 load('monster', 'images/monster_basic.png'); load('monsterElite', 'images/monster_elite.png'); load('boss', 'images/boss.png'); load('bossBlood', 'images/boss_blood.png'); load('monsterFire', 'images/monster_fire.png'); load('monsterIce', 'images/monster_ice.png'); load('monsterShadow', 'images/monster_shadow.png'); load('monsterGold', 'images/monster_gold.png'); load('bossFire', 'images/boss_fire.png'); load('bossShadow', 'images/boss_shadow.png');
 load('pet', 'images/pet_linghu.png'); load('petXuanwu', 'images/pet_xuanwu.png'); load('petFire', 'images/pet_fire.png'); load('petIce', 'images/pet_ice.png'); load('petGold', 'images/pet_gold.png'); load('petShadow', 'images/pet_shadow.png'); load('petBlood', 'images/pet_blood.png'); load('petJade', 'images/pet_jade.png'); load('petHoly', 'images/pet_holy.png'); load('petThunder', 'images/pet_thunder.png');
-load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png'); load('iconMaterial', 'images/icon_material.png');
+load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png'); load('iconMaterial', 'images/icon_material.png'); load('iconPetFood', 'images/icon_pet_food.png'); load('iconEvolveStone', 'images/icon_evolve_stone.png');
 
 // 绘制工具已抽到 js/draw.js（见下方 require）
 function addLog(s) { log.unshift(s); if (log.length > 3) log.pop(); }
 
 // ===== 特效 =====
-let particles = [], slashes = [], shake = 0, arcLife = 0, flashHero = 0, flashMonster = 0, flashPet = 0, combo = 0, battleSpeed = 1, bossFlash = 0, levelUpFlash = 0;
+let particles = [], slashes = [], shake = 0, arcLife = 0, flashHero = 0, flashMonster = 0, flashPet = 0, flashPetUid = 0, combo = 0, battleSpeed = 1, bossFlash = 0, levelUpFlash = 0;
 let ambient = [];
 for (let i = 0; i < 26; i++) ambient.push({ x: Math.random() * SW, y: Math.random() * SH, r: 1 + Math.random() * 2.5, sp: 10 + Math.random() * 25, ph: Math.random() * 6.28 });
 let fade = 0;
@@ -435,7 +436,7 @@ async function doLogin() {
   const [, body] = await send(1000, []);
   let hr = false, role = null; for (const f of p(body)) { if (f.n === 3) hr = (f.v === 1n); if (f.n === 4) role = f.d; }
   hasRole = hr;
-  if (role) { for (const f of p(role)) { if (f.n === 2) nickname = bytesToStr(f.d); if (f.n === 4) level = Number(f.v); if (f.n === 5) exp = Number(f.v); if (f.n === 6) copper = Number(f.v); if (f.n === 7) power = Number(f.v); } if (prevLevel && level > prevLevel) { sndUpgrade(); levelUpFlash = 1; addLog('等级提升！Lv.' + prevLevel + ' → Lv.' + level); } prevLevel = level; if (!welcomed) { welcomed = true; addLog('欢迎回来，' + nickname); } fetchEquip(); if (!tutorialDone && !guide) guide = { phase: 'intro' }; }
+  if (role) { for (const f of p(role)) { if (f.n === 2) nickname = bytesToStr(f.d); if (f.n === 4) level = Number(f.v); if (f.n === 5) exp = Number(f.v); if (f.n === 6) copper = Number(f.v); if (f.n === 7) power = Number(f.v); } if (prevLevel && level > prevLevel) { sndUpgrade(); levelUpFlash = 1; addLog('等级提升！Lv.' + prevLevel + ' → Lv.' + level); } prevLevel = level; if (!welcomed) { welcomed = true; addLog('欢迎回来，' + nickname); } fetchEquip(); fetchPet(); if (!tutorialDone && !guide) guide = { phase: 'intro' }; }
   else if (!hr) { /* 自动建号 */ const nb = utf8('尘霄散修'); await send(1002, [0x0A, nb.length].concat(nb)); await doLogin(); }
 }
 async function doClaim() { const [, body] = await send(2006, []); let r = []; for (const f of p(body)) if (f.n === 2) { const s = p(f.d); r.push((s[0].v === 2n ? '修为' : '铜钱') + s[1].v); } addLog('在线挂机收益：' + (r.join(' ') || '无')); await doLogin(); }
@@ -448,8 +449,8 @@ async function doBattle(stageId, stageType) {
     else if (f.n === 3) star = Number(f.v);
     else if (f.n === 4) {
       for (const a of p(f.d)) if (a.n === 2) {
-        const act = { atk: 1, tgt: 1, dmg: 0, heal: 0, crit: false, dodge: false };
-        for (const x of p(a.d)) { if (x.n === 2) act.atk = Number(x.v); if (x.n === 4) act.tgt = Number(x.v); if (x.n === 6) act.dmg = Number(x.v); if (x.n === 7) act.heal = Number(x.v); if (x.n === 8) act.crit = (x.v === 1n); if (x.n === 9) act.dodge = (x.v === 1n); }
+        const act = { atk: 1, tgt: 1, auid: 0, tuid: 0, dmg: 0, heal: 0, crit: false, dodge: false };
+        for (const x of p(a.d)) { if (x.n === 1) act.auid = Number(x.v); if (x.n === 2) act.atk = Number(x.v); if (x.n === 3) act.tuid = Number(x.v); if (x.n === 4) act.tgt = Number(x.v); if (x.n === 6) act.dmg = Number(x.v); if (x.n === 7) act.heal = Number(x.v); if (x.n === 8) act.crit = (x.v === 1n); if (x.n === 9) act.dodge = (x.v === 1n); }
         actions.push(act);
       }
     }
@@ -523,6 +524,12 @@ async function refine() { const q = selectedEquip(); if (!q) return; await send(
 async function decompose() { const q = selectedEquip(); if (!q) return; await send(4008, [0x08].concat(wv(q.uid))); sndUpgrade(); addLog('已分解 ' + (EQUIP_NAME[q.id] || '装备') + ' → 铜钱'); equipPopup = null; await doLogin(); await fetchEquip(); }
 function petName() { const p = petData.find(q => q.combat); return p ? (PET_NAME[p.id] || '灵宠') : '灵宠'; }
 function petImg() { const p = petData.find(q => q.combat); return p ? (PET_IMG[p.id] || 'pet') : 'pet'; }
+// 出战位随等级解锁（与服务端一致）
+function maxCombatPets(lv) { return lv >= 60 ? 3 : lv >= 30 ? 2 : 1; }
+// 当前出战灵宠（按 uid 排序，最多 3）
+function combatPets() { return petData.filter(q => q.combat).sort((a, b) => a.uid - b.uid).slice(0, 3); }
+function petSlotPos(i) { return { px: 120 + i * 50, py: GROUND - 52, cx: 120 + i * 50 + 23 }; }
+function petIndexByUid(uid) { const cps = combatPets(); for (let i = 0; i < cps.length; i++) if (300000 + cps[i].uid === uid) return i; return -1; }
 // 装备所属阶（1-10），用于套装判定
 function equipTier(id) {
   if (id >= 2201 && id <= 2210) return id - 2200;
@@ -639,11 +646,30 @@ async function fetchPet() {
   petData = [];
   for (const f of p(body)) if (f.n === 2) { const e = p(f.d); const q = { combat: false, lv: 1, exp: 0, star: 0 }; for (const x of e) { if (x.n === 1) q.uid = Number(x.v); if (x.n === 2) q.id = Number(x.v); if (x.n === 3) q.lv = Number(x.v); if (x.n === 4) q.exp = Number(x.v); if (x.n === 5) q.star = Number(x.v); if (x.n === 7) q.combat = (x.v === 1n); } petData.push(q); }
 }
-async function doPet() { await fetchPet(); selIdx = 0; scene = 'pet'; fade = 0; }
+async function doPet() { await fetchPet(); await fetchBag(); selIdx = 0; scene = 'pet'; fade = 0; }
 function selectedPet() { return petData[selIdx] || null; }
-async function setCombat() { const q = selectedPet(); if (!q) return; await send(5002, [0x08].concat(wv(q.uid), [0x10, q.combat ? 0 : 1])); addLog(q.combat ? '已让' + (PET_NAME[q.id] || '灵宠') + '休息' : '已让' + (PET_NAME[q.id] || '灵宠') + '出战'); await doLogin(); await fetchPet(); }
-async function upgradePet() { const q = selectedPet(); if (!q) return; await send(5004, [0x08].concat(wv(q.uid))); sndUpgrade(); addLog('已升级 ' + (PET_NAME[q.id] || '灵宠')); await doLogin(); await fetchPet(); }
-async function evolvePet() { const q = selectedPet(); if (!q) return; await send(5006, [0x08].concat(wv(q.uid))); sndUpgrade(); addLog('已进化 ' + (PET_NAME[q.id] || '灵宠')); await doLogin(); await fetchPet(); }
+function selectedPet() { return petData[selIdx] || null; }
+async function setCombat() {
+  const q = selectedPet(); if (!q) return;
+  const [, resp] = await send(5002, [0x08].concat(wv(q.uid), [0x10, q.combat ? 0 : 1]));
+  let code = 0; for (const f of p(resp)) if (f.n === 1) { for (const x of p(f.d)) if (x.n === 1) code = Number(x.v); }
+  if (code > 0) { showModal('出战失败', ['出战位已满（当前最多 ' + maxCombatPets(level) + ' 只），', '请先让其他灵宠休息，或提升等级解锁更多出战位。'], [{ label: '知道了', fn: closeModal }]); return; }
+  addLog(q.combat ? '已让' + (PET_NAME[q.id] || '灵宠') + '休息' : '已让' + (PET_NAME[q.id] || '灵宠') + '出战'); await doLogin(); await fetchPet();
+}
+async function upgradePet() {
+  const q = selectedPet(); if (!q) return;
+  const [, resp] = await send(5004, [0x08].concat(wv(q.uid)));
+  let code = 0; for (const f of p(resp)) if (f.n === 1) { for (const x of p(f.d)) if (x.n === 1) code = Number(x.v); }
+  if (code > 0) { showModal('升级失败', ['缺少材料「灵兽丹 ×1」或铜钱不足。', '灵兽丹可通过秘境战斗掉落获得。'], [{ label: '知道了', fn: closeModal }]); return; }
+  sndUpgrade(); addLog('已升级 ' + (PET_NAME[q.id] || '灵宠')); await doLogin(); await fetchPet(); await fetchBag();
+}
+async function evolvePet() {
+  const q = selectedPet(); if (!q) return;
+  const [, resp] = await send(5006, [0x08].concat(wv(q.uid)));
+  let code = 0; for (const f of p(resp)) if (f.n === 1) { for (const x of p(f.d)) if (x.n === 1) code = Number(x.v); }
+  if (code > 0) { showModal('进化失败', ['缺少材料「进化石 ×1」或铜钱不足。', '进化石可通过秘境战斗掉落获得。'], [{ label: '知道了', fn: closeModal }]); return; }
+  sndUpgrade(); addLog('已进化 ' + (PET_NAME[q.id] || '灵宠')); await doLogin(); await fetchPet(); await fetchBag();
+}
 async function fetchBag() {
   const [, body] = await send(6000, []);
   bagItems = [];
@@ -652,6 +678,7 @@ async function fetchBag() {
 async function doBag() { await fetchBag(); selIdx = 0; scene = 'bag'; fade = 0; }
 async function useItem() {
   const q = bagItems[selIdx]; if (!q) return;
+  if (q.id === 5002 || q.id === 5003) { showModal('提示', [ITEM_NAME[q.id] + ' 是灵宠培养材料，', '在「灵宠」页面升级/进化时自动消耗。'], [{ label: '知道了', fn: closeModal }]); return; }
   await send(6002, [0x08].concat(wv(q.uid), [0x10, 0x01]));
   sndUpgrade();
   addLog('已使用 ' + (ITEM_NAME[q.id] || '材料#' + q.id) + ' ×1 → 铜钱');
@@ -879,13 +906,15 @@ function renderBattle() {
   ctx.fillStyle = 'rgba(0,0,0,0.32)'; ctx.beginPath(); ctx.ellipse(mcx, GROUND + 5, mw * 0.36, 10, 0, 0, Math.PI * 2); ctx.fill();
   text((hasRole ? nickname : '尘霄散修'), 99, GROUND - 278, 12, '#b7f0c0', 'center', true);
   text((isBoss ? 'BOSS · ' : '') + st.monsterName, mcx, my - 12, 12, isBoss ? '#ff8080' : '#ffd2d2', 'center', true);
-  const hasPet = battle.hasPet, pcx = 168, px = 128, py = GROUND - 84;
-  if (hasPet) {
-    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.beginPath(); ctx.ellipse(pcx, GROUND + 4, 30, 6, 0, 0, Math.PI * 2); ctx.fill();
-    text(petName(), pcx, py - 6, 11, '#ffe9b0', 'center', true);
-    draw(petImg(), px, py, 80, 80);
-    if (flashPet > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(petImg(), px, py, 80, 80); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
-  }
+  const cps = combatPets();
+  cps.forEach((p, i) => {
+    const slot = petSlotPos(i);
+    const pimg = PET_IMG[p.id] || 'pet';
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.beginPath(); ctx.ellipse(slot.cx, GROUND + 4, 22, 5, 0, 0, Math.PI * 2); ctx.fill();
+    text(PET_NAME[p.id] || '灵宠', slot.cx, slot.py - 4, 9, '#ffe9b0', 'center', true);
+    draw(pimg, slot.px, slot.py, 46, 46);
+    if (flashPet > 0 && flashPetUid === 300000 + p.uid) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(pimg, slot.px, slot.py, 46, 46); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
+  });
   const mimg = st.img || 'monster';
   draw(currentFashion().img, 24 + hl + hknock, GROUND - 267, 150, 267);
   // 主角武器（动态：攻击时挥动旋转 + 发光）
@@ -905,12 +934,13 @@ function renderBattle() {
   ctx.globalAlpha = 1;
   if (flashHero > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(currentFashion().img, 24 + hl, GROUND - 267, 150, 267); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
   if (flashMonster > 0) { ctx.globalAlpha = 0.7; ctx.globalCompositeOperation = 'lighter'; draw(mimg, mx, my, mw, mh); ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; }
-  // 动态血条（按攻击方/受击方阵营累计）
-  let dmgM = 0, dmgMT = 0, dmgH = 0, dmgHT = 0, dmgP = 0, dmgPT = 0;
-  for (const a of battle.res.actions) { if (a.atk === 3) { if (a.tgt === 2) dmgPT += a.dmg; else dmgHT += a.dmg; } else dmgMT += a.dmg; }
-  for (let i = 0; i < battle.pushed; i++) { const a = battle.res.actions[i]; if (a.atk === 3) { if (a.tgt === 2) dmgP += a.dmg; else dmgH += a.dmg; } else dmgM += a.dmg; }
+  // 动态血条（怪物/主角/每只灵宠分别累计）
+  let dmgM = 0, dmgMT = 0, dmgH = 0, dmgHT = 0;
+  const petDmgTot = {}, petDmg = {};
+  for (const a of battle.res.actions) { if (a.atk === 3) { if (a.tgt === 2) petDmgTot[a.tuid] = (petDmgTot[a.tuid] || 0) + a.dmg; else dmgHT += a.dmg; } else dmgMT += a.dmg; }
+  for (let i = 0; i < battle.pushed; i++) { const a = battle.res.actions[i]; if (a.atk === 3) { if (a.tgt === 2) petDmg[a.tuid] = (petDmg[a.tuid] || 0) + a.dmg; else dmgH += a.dmg; } else dmgM += a.dmg; }
   bar(24, GROUND + 16, 150, 10, '#3ddc84', 1 - (dmgHT ? dmgH / dmgHT : 0));
-  if (hasPet) bar(118, GROUND + 30, 100, 8, '#7cc4ff', 1 - (dmgPT ? dmgP / dmgPT : 0));
+  cps.forEach((p, i) => { const uid = 300000 + p.uid; const tot = petDmgTot[uid] || 0, cur = petDmg[uid] || 0; const slot = petSlotPos(i); bar(slot.px, slot.py + 48, 46, 5, '#7cc4ff', tot ? 1 - cur / tot : 1); });
   bar(mx, GROUND + 16, mw, 12, '#ff5c5c', 1 - (dmgMT ? dmgM / dmgMT : 0));
   ctx.globalCompositeOperation = 'lighter';
   for (const p of particles) { ctx.globalAlpha = 1 - p.life / p.max; ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill(); }
@@ -974,11 +1004,17 @@ function renderPet() {
   ctx.fillStyle = 'rgba(10,22,40,0.6)'; ctx.fillRect(0, 0, SW, SH);
   renderAmbient('#ffe9a0');
   text('灵宠', SW / 2, 46, 22, '#ffd76a', 'center', true);
+  text('出战 ' + combatPets().length + '/' + maxCombatPets(level) + ' 位', SW - 15, 42, 12, '#7cc4ff', 'right', true);
   btn({ x: 15, y: 16, w: 72, h: 36, label: '返回' });
   if (!petData.length) { text('暂无灵宠，去挑战 BOSS 获取吧', SW / 2, 260, 14, '#9ab', 'center'); return; }
-  const ly = 70, lh = 60, lg = 6;
-  petData.slice(0, 4).forEach((q, i) => {
-    const py = ly + i * (lh + lg);
+  const ly = 70, lh = 60, lg = 6, rowH = lh + lg;
+  const maxScroll = Math.max(0, ly + petData.length * rowH - 344);
+  petScroll = Math.max(0, Math.min(petScroll, maxScroll));
+  ctx.save();
+  ctx.beginPath(); ctx.rect(0, 64, SW, 282); ctx.clip();
+  ctx.translate(0, -petScroll);
+  petData.forEach((q, i) => {
+    const py = ly + i * rowH;
     const sel = selIdx === i;
     panel(15, py, SW - 30, lh, sel ? 'rgba(37,99,235,0.5)' : 'rgba(15,25,45,0.85)', 10);
     if (sel) { ctx.strokeStyle = 'rgba(255,213,90,0.85)'; ctx.lineWidth = 2; ctx.strokeRect(15, py, SW - 30, lh); }
@@ -986,6 +1022,7 @@ function renderPet() {
     text((PET_NAME[q.id] || '灵宠') + (q.combat ? ' 【出战】' : ''), 72, py + 22, 14, '#ffd0a0', 'left', true);
     text('Lv.' + q.lv + '  ★' + q.star, 72, py + 42, 11, '#9ab', 'left');
   });
+  ctx.restore();
   const sel = petData[selIdx];
   if (sel) {
     const a = calcPetAttrs(sel);
@@ -996,7 +1033,8 @@ function renderPet() {
     bar(29, 402, SW - 60, 5, '#e8c96a', Math.min(1, sel.exp / needPetExp));
     text('经验 ' + sel.exp + ' / ' + needPetExp, 29, 418, 10, '#9ab', 'left');
     text('技能：随主人攻击，分担伤害', 29, 436, 11, '#7cc4ff', 'left');
-    text('升级提升属性 · 进化提升星级', 29, 456, 11, '#9ab', 'left');
+    const food = bagItems.find(b => b.id === 5002), stone = bagItems.find(b => b.id === 5003);
+    text('升级:灵兽丹×1(有' + (food ? food.c : 0) + ') · 进化:进化石×1(有' + (stone ? stone.c : 0) + ')', 29, 456, 10, '#9ab', 'left');
     btn({ x: 15, y: 486, w: 108, h: 44, label: sel.combat ? '休息' : '出战' });
     btn({ x: 131, y: 486, w: 108, h: 44, label: '升级' });
     btn({ x: 247, y: 486, w: 128, h: 44, label: '进化' });
@@ -1024,9 +1062,10 @@ function renderBag() {
     panel(15, 440, SW - 30, 110, 'rgba(15,25,45,0.92)', 12);
     text(ITEM_NAME[sel.id] || '材料#' + sel.id, 30, 464, 14, '#ffe9b0', 'left', true);
     text('数量 ×' + sel.c, 30, 486, 12, '#fff', 'left');
-    text('使用后兑换铜钱 ×' + (sel.c * 50), 30, 506, 11, '#7cc4ff', 'left');
-    text('（材料可用于强化 / 兑换铜钱）', 30, 526, 11, '#9ab', 'left');
-    btn({ x: 15, y: 560, w: SW - 30, h: 48, label: '使用 1 个' });
+    if (sel.id === 5002) { text('灵宠「升级」时消耗 1 个', 30, 506, 11, '#7cc4ff', 'left'); text('（在灵宠页面升级自动扣除）', 30, 526, 11, '#9ab', 'left'); }
+    else if (sel.id === 5003) { text('灵宠「进化」时消耗 1 个', 30, 506, 11, '#7cc4ff', 'left'); text('（在灵宠页面进化自动扣除）', 30, 526, 11, '#9ab', 'left'); }
+    else { text('使用后兑换铜钱 ×' + (sel.c * 50), 30, 506, 11, '#7cc4ff', 'left'); text('（灵石可用于强化 / 兑换铜钱）', 30, 526, 11, '#9ab', 'left'); }
+    btn({ x: 15, y: 560, w: SW - 30, h: 48, label: sel.id === 5002 || sel.id === 5003 ? '查看说明' : '使用 1 个' });
   }
 }
 function renderFashion() {
@@ -1099,6 +1138,7 @@ function update(dt) {
     const act = battle.res.actions[battle.pushed];
     const toMonster = act.atk !== 3;   // 我方攻击（1=主角 2=灵宠）
     const targetIsPet = act.tgt === 2; // 怪物打灵宠
+    const petIdx = act.atk === 2 ? petIndexByUid(act.auid) : (targetIsPet ? petIndexByUid(act.tuid) : -1);
     if (act.dodge) { battle.hits.push({ kind: 'dodge', x: toMonster ? -15 : 15, life: 0 }); sndDodge(); if (toMonster) combo = 0; }
     else if (act.heal > 0) { battle.hits.push({ kind: 'heal', v: act.heal, x: 0, life: 0 }); }
     else {
@@ -1106,11 +1146,14 @@ function update(dt) {
       if (toMonster) combo++; else combo = 0;
       act.crit ? sndCrit() : sndHit();
       const mcx2 = battle.stage && battle.stage.boss ? SW - 95 : SW - 99;
-      const fx = toMonster ? (act.atk === 2 ? 168 : 99) : mcx2;
-      const tx = toMonster ? mcx2 : (targetIsPet ? 168 : 99);
+      const petX = petIdx >= 0 ? petSlotPos(petIdx).cx : 99;
+      const fx = toMonster ? (act.atk === 2 ? petX : 99) : mcx2;
+      const tx = toMonster ? mcx2 : (targetIsPet ? petX : 99);
       slashes.push({ x: fx, y: GROUND - 130, dx: tx - fx, life: 0, max: 0.2, crit: act.crit });
       spawn(tx, GROUND - 90, act.crit ? '#ffcc33' : '#ff6a00');
-      if (toMonster) flashMonster = 0.22; else if (targetIsPet) flashPet = 0.22; else flashHero = 0.22;
+      if (toMonster) { flashMonster = 0.22; if (act.atk === 2 && petIdx >= 0) { flashPet = 0.22; flashPetUid = act.auid; } }
+      else if (targetIsPet) { flashPet = 0.22; flashPetUid = act.tuid; }
+      else flashHero = 0.22;
       if (!toMonster && battle.stage && battle.stage.boss) { bossFlash = 0.5; shake = 14; } else shake = act.crit ? 12 : 7;
       arcLife = 0.35;
     }
@@ -1316,12 +1359,15 @@ wx.onTouchStart((e) => {
     return;
   }
   if (scene === 'pet') {
+    petDragY = y; petDragging = false;
     if (x >= 15 && x <= 87 && y >= 16 && y <= 52) { sndClick(); scene = 'home'; fade = 0; return; }
+    const adjY = y + petScroll;
     const ly = 70, lh = 60, lg = 6;
-    for (let i = 0; i < Math.min(4, petData.length); i++) {
+    for (let i = 0; i < petData.length; i++) {
       const py = ly + i * (lh + lg);
-      if (x >= 15 && x <= SW - 15 && y >= py && y <= py + lh) { sndClick(); selIdx = i; return; }
+      if (x >= 15 && x <= SW - 15 && adjY >= py && adjY <= py + lh) { petTap = i; return; }
     }
+    petTap = null;
     const sel = petData[selIdx];
     if (sel && y >= 486 && y <= 530) {
       if (x >= 15 && x <= 123) { sndClick(); setCombat(); return; }
@@ -1384,7 +1430,7 @@ wx.onTouchStart((e) => {
   for (const b of buttons) { if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { sndClick(); if (mainActions[b.label]) mainActions[b.label](); return; } }
 });
 
-// 人物界面：按住左右拖动 360° 旋转；关卡页上下拖动滚动列表
+// 人物界面：按住左右拖动 360° 旋转；关卡页/灵宠页上下拖动滚动列表
 wx.onTouchMove((e) => {
   const t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
   const x = t ? (t.clientX !== undefined ? t.clientX : t.x) : 0;
@@ -1401,6 +1447,14 @@ wx.onTouchMove((e) => {
     }
     stagesScroll -= (y - stagesDragY);
     stagesDragY = y;
+  } else if (scene === 'pet') {
+    if (!petDragging) {
+      if (Math.abs(y - petDragY) < 8) return;
+      petDragging = true; petTap = null;
+      return;
+    }
+    petScroll -= (y - petDragY);
+    petDragY = y;
   }
 });
 wx.onTouchEnd(() => {
@@ -1411,9 +1465,10 @@ wx.onTouchEnd(() => {
     else doBattle(stagesTap.s.id, stagesTap.s.type);
     stagesTap = null;
   }
-  stagesDragging = false;
+  if (scene === 'pet' && petTap !== null && !petDragging) { sndClick(); selIdx = petTap; petTap = null; }
+  stagesDragging = false; petDragging = false;
 });
-wx.onTouchCancel(() => { heroDragging = false; stagesDragging = false; stagesTap = null; });
+wx.onTouchCancel(() => { heroDragging = false; stagesDragging = false; stagesTap = null; petDragging = false; petTap = null; });
 
 // ===== 主循环 =====
 let lastT = Date.now();

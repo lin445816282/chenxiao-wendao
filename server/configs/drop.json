@@ -55,6 +55,18 @@
         "weight": 40,
         "count_min": 1,
         "count_max": 3
+      },
+      {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
       }
     ]
   },
@@ -114,6 +126,18 @@
         "weight": 40,
         "count_min": 1,
         "count_max": 3
+      },
+      {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
       }
     ]
   },
@@ -173,6 +197,18 @@
         "weight": 40,
         "count_min": 1,
         "count_max": 3
+      },
+      {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
       },
       {
         "item_id": 3003,
@@ -240,6 +276,18 @@
         "count_max": 3
       },
       {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
         "item_id": 3004,
         "weight": 8,
         "count_min": 1,
@@ -303,6 +351,18 @@
         "weight": 40,
         "count_min": 1,
         "count_max": 3
+      },
+      {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
       },
       {
         "item_id": 3005,
@@ -370,6 +430,18 @@
         "count_max": 3
       },
       {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
         "item_id": 3006,
         "weight": 8,
         "count_min": 1,
@@ -433,6 +505,18 @@
         "weight": 40,
         "count_min": 1,
         "count_max": 3
+      },
+      {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
       },
       {
         "item_id": 3007,
@@ -500,6 +584,18 @@
         "count_max": 3
       },
       {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
         "item_id": 3008,
         "weight": 8,
         "count_min": 1,
@@ -565,6 +661,18 @@
         "count_max": 3
       },
       {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
+      },
+      {
         "item_id": 3009,
         "weight": 8,
         "count_min": 1,
@@ -628,6 +736,18 @@
         "weight": 40,
         "count_min": 1,
         "count_max": 3
+      },
+      {
+        "item_id": 5002,
+        "weight": 30,
+        "count_min": 1,
+        "count_max": 2
+      },
+      {
+        "item_id": 5003,
+        "weight": 15,
+        "count_min": 1,
+        "count_max": 1
       },
       {
         "item_id": 3010,

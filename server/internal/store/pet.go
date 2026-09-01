@@ -59,27 +59,21 @@ func GetPet(db *sql.DB, petUID int64) (*Pet, error) {
 	return &p, nil
 }
 
-// SetPetCombat 设置出战状态；出战前先清空该玩家其他出战灵宠（V1 单一出战位）。
-func SetPetCombat(db *sql.DB, playerID, petUID int64, combat bool) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if combat {
-		if _, err := tx.Exec(`UPDATE t_pet SET is_combat = 0 WHERE player_id = ?`, playerID); err != nil {
-			return err
-		}
-	}
+// SetPetCombat 设置出战状态（V2：支持多只灵宠同时出战，上限由上层校验）。
+func SetPetCombat(db *sql.DB, petUID int64, combat bool) error {
 	c := 0
 	if combat {
 		c = 1
 	}
-	if _, err := tx.Exec(`UPDATE t_pet SET is_combat = ? WHERE id = ?`, c, petUID); err != nil {
-		return err
-	}
-	return tx.Commit()
+	_, err := db.Exec(`UPDATE t_pet SET is_combat = ? WHERE id = ?`, c, petUID)
+	return err
+}
+
+// CountCombatPet 统计玩家当前出战灵宠数量。
+func CountCombatPet(db *sql.DB, playerID int64) (int, error) {
+	var n int
+	err := db.QueryRow(`SELECT COUNT(*) FROM t_pet WHERE player_id = ? AND is_combat = 1`, playerID).Scan(&n)
+	return n, err
 }
 
 // AddPetExp 给出战灵宠加经验并自动升级（升到下一级所需 = 当前等级 × 500）。

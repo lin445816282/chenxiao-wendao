@@ -90,6 +90,8 @@ for (const t of tiers) {
   ];
   for (const e of newEntries) entries.push({ item_id: e.id, weight: 60, count_min: 1, count_max: 1 });
   entries.push({ item_id: 5001, weight: 40, count_min: 1, count_max: 3 });
+  entries.push({ item_id: 5002, weight: 30, count_min: 1, count_max: 2 }); // 灵兽丹(升级材料)
+  entries.push({ item_id: 5003, weight: 15, count_min: 1, count_max: 1 }); // 进化石(进化材料)
   if (t.b >= 3) entries.push({ item_id: pet.id, weight: 8, count_min: 1, count_max: 1 });
   drops.push({ id: t.b, entries });
   levels.push({ band: t.b, level_min: t.lvMin, level_max: t.lvMax, realm: t.realm, stage_ids: [st.id], pet_ids: [pet.id], equip_ids: [w.id, a.id, ...newEntries.map(e => e.id)] });

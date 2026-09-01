@@ -91,6 +91,7 @@ func Migrate(db *sql.DB) error {
 			stage_id INTEGER NOT NULL DEFAULT 0,
 			clear_times INTEGER NOT NULL DEFAULT 0,
 			max_star INTEGER NOT NULL DEFAULT 0,
+			three_star_claimed INTEGER NOT NULL DEFAULT 0,
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY (player_id, stage_id)
 		)`,
@@ -105,5 +106,6 @@ func Migrate(db *sql.DB) error {
 	_, _ = db.Exec(`ALTER TABLE t_equip ADD COLUMN affixes TEXT NOT NULL DEFAULT ''`)
 	_, _ = db.Exec(`ALTER TABLE t_player ADD COLUMN last_sign_day TEXT NOT NULL DEFAULT ''`)
 	_, _ = db.Exec(`ALTER TABLE t_player ADD COLUMN last_hang_settle_at INTEGER NOT NULL DEFAULT 0`)
+	_, _ = db.Exec(`ALTER TABLE t_stage_clear ADD COLUMN three_star_claimed INTEGER NOT NULL DEFAULT 0`)
 	return nil
 }

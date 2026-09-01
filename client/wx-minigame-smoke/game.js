@@ -750,7 +750,7 @@ function renderStages() {
     else if (cleared) {
       text('★'.repeat(star) + '☆'.repeat(3 - star), cx + cw - 16, cy + 28, 15, '#ffc53d', 'right');
       btn({ x: cx + cw - 78, y: cy + 44, w: 62, h: 30, label: '扫荡' });
-      text('已通关', cx + cw - 16, cy + 96, 10, '#4ade80', 'right');
+      text(star >= 3 ? '已三星 · 宝箱已领' : '冲三星领宝箱', cx + cw - 16, cy + 96, 10, star >= 3 ? '#4ade80' : '#ffd76a', 'right');
     }
     else text('挑战 →', cx + cw - 16, cy + ch / 2 + 6, 14, '#ffd76a', 'right', true);
   });
@@ -941,7 +941,7 @@ function renderBattle() {
     if (w) {
       battle.res.equips.forEach(id => loot.push(['⚔ ' + (EQUIP_NAME[id] || '装备#' + id), '#8ac4ff']));
       battle.res.pets.forEach(id => loot.push(['🐾 ' + (PET_NAME[id] || '灵宠#' + id), '#ffd0a0']));
-      battle.res.rewards.forEach(r => loot.push([(r.id === 1 ? '铜钱' : r.id === 2 ? '修为' : '材料') + ' × ' + r.c, '#ffe9b0']));
+      battle.res.rewards.forEach(r => loot.push([(r.id === 1 ? '铜钱' : r.id === 2 ? '修为' : (ITEM_NAME[r.id] || '材料')) + ' × ' + r.c, '#ffe9b0']));
       if (!loot.length) loot.push(['本次未掉落，再接再厉', '#9ab']);
     } else loot.push(['战力不足，强化装备 / 升级灵宠后再战', '#ff9b9b']);
     const ph = Math.min(SH - 130, 168 + loot.length * 26), py = SH - 44 - ph;

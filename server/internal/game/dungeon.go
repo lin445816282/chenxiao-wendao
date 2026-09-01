@@ -68,15 +68,28 @@ func (s *Service) OnStartStage(ctx context.Context, conn *net.Connection, body [
 
 	// 掉落：胜利后按掉落表权重随机（普通 1 / 精英 2 / BOSS 3 次），装备/灵宠落库
 	if res.Win {
+		star := calcStar(res)
 		if playerID > 0 {
 			// 基础奖励：修为 + 铜钱（按关卡配置落库并下发）
 			store.AddResources(s.DB, playerID, stage.ExpReward, stage.CopperReward)
 			store.AddPetExp(s.DB, playerID, stage.ExpReward)
-			store.RecordStageClear(s.DB, playerID, stage.ID, calcStar(res))
+			store.RecordStageClear(s.DB, playerID, stage.ID, star)
 			resp.Rewards = append(resp.Rewards,
 				&common.RewardItem{ItemId: 2, Count: stage.ExpReward},
 				&common.RewardItem{ItemId: 1, Count: stage.CopperReward},
 			)
+			// 三星首通奖励：一次性发放（铜钱翻倍 + 灵石）
+			if star >= 3 && !store.HasThreeStarClaimed(s.DB, playerID, stage.ID) {
+				bonusCopper := stage.CopperReward * 2
+				bonusItem := int64(stage.Type * 10)
+				store.AddResources(s.DB, playerID, 0, bonusCopper)
+				store.AddBagItem(s.DB, playerID, 5001, bonusItem)
+				store.MarkThreeStarClaimed(s.DB, playerID, stage.ID)
+				resp.Rewards = append(resp.Rewards,
+					&common.RewardItem{ItemId: 1, Count: bonusCopper},
+					&common.RewardItem{ItemId: 5001, Count: bonusItem},
+				)
+			}
 		}
 		drops := s.rollStageDrops(stage.DropTableID, int(stage.Type), playerID)
 		resp.Rewards = append(resp.Rewards, drops.Rewards...)

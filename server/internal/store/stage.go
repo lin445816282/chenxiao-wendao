@@ -34,6 +34,19 @@ func HasClearedStage(db *sql.DB, playerID int64, stageID int32) bool {
 	return err == nil
 }
 
+// HasThreeStarClaimed 是否已领取该关卡三星首通奖励。
+func HasThreeStarClaimed(db *sql.DB, playerID int64, stageID int32) bool {
+	var n int
+	err := db.QueryRow(`SELECT 1 FROM t_stage_clear WHERE player_id = ? AND stage_id = ? AND three_star_claimed = 1`, playerID, stageID).Scan(&n)
+	return err == nil
+}
+
+// MarkThreeStarClaimed 标记三星首通奖励已领取。
+func MarkThreeStarClaimed(db *sql.DB, playerID int64, stageID int32) error {
+	_, err := db.Exec(`UPDATE t_stage_clear SET three_star_claimed = 1 WHERE player_id = ? AND stage_id = ?`, playerID, stageID)
+	return err
+}
+
 // ListStageClear 玩家全部通关记录。
 func ListStageClear(db *sql.DB, playerID int64) ([]StageClear, error) {
 	rows, err := db.Query(`SELECT stage_id, clear_times, max_star FROM t_stage_clear WHERE player_id = ? ORDER BY stage_id`, playerID)

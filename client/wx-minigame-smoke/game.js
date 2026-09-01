@@ -234,6 +234,8 @@ const IMG = {};
 function load(k, p) { const im = wx.createImage(); im.src = p; im.onload = () => IMG[k] = im; }
 load('bg', 'images/bg_home.png'); load('bgBattle', 'images/bg_battle.png');
 load('hero', 'images/hero_male.png'); load('heroFemale', 'images/hero_female.png'); load('heroBlue', 'images/hero_blue.png'); load('heroGold', 'images/hero_gold.png'); load('heroRed', 'images/hero_red.png'); load('heroFemaleBlue', 'images/hero_female_blue.png'); load('heroPurple', 'images/hero_purple.png'); load('heroTeal', 'images/hero_teal.png'); load('heroOrange', 'images/hero_orange.png'); load('heroPink', 'images/hero_pink.png'); load('heroViolet', 'images/hero_violet.png'); load('heroCyan', 'images/hero_cyan.png');
+// 背面立绘（多角度方案：先镜像占位，后续替换为真实背面图即可自动生效）
+load('heroBack', 'images/hero_male_back.png'); load('heroFemaleBack', 'images/hero_female_back.png'); load('heroBlueBack', 'images/hero_blue_back.png'); load('heroGoldBack', 'images/hero_gold_back.png'); load('heroRedBack', 'images/hero_red_back.png'); load('heroFemaleBlueBack', 'images/hero_female_blue_back.png'); load('heroPurpleBack', 'images/hero_purple_back.png'); load('heroTealBack', 'images/hero_teal_back.png'); load('heroOrangeBack', 'images/hero_orange_back.png'); load('heroPinkBack', 'images/hero_pink_back.png'); load('heroVioletBack', 'images/hero_violet_back.png'); load('heroCyanBack', 'images/hero_cyan_back.png');
 load('monster', 'images/monster_basic.png'); load('monsterElite', 'images/monster_elite.png'); load('boss', 'images/boss.png'); load('bossBlood', 'images/boss_blood.png'); load('monsterFire', 'images/monster_fire.png'); load('monsterIce', 'images/monster_ice.png'); load('monsterShadow', 'images/monster_shadow.png'); load('monsterGold', 'images/monster_gold.png'); load('bossFire', 'images/boss_fire.png'); load('bossShadow', 'images/boss_shadow.png');
 load('pet', 'images/pet_linghu.png'); load('petXuanwu', 'images/pet_xuanwu.png'); load('petFire', 'images/pet_fire.png'); load('petIce', 'images/pet_ice.png'); load('petGold', 'images/pet_gold.png'); load('petShadow', 'images/pet_shadow.png'); load('petBlood', 'images/pet_blood.png'); load('petJade', 'images/pet_jade.png'); load('petHoly', 'images/pet_holy.png'); load('petThunder', 'images/pet_thunder.png');
 load('iconWeapon', 'images/icon_weapon.png'); load('iconArmor', 'images/icon_armor.png'); load('iconMaterial', 'images/icon_material.png'); load('iconPetFood', 'images/icon_pet_food.png'); load('iconEvolveStone', 'images/icon_evolve_stone.png');
@@ -613,13 +615,16 @@ async function showAttrs() {
 //   · 离屏画布叠加圆柱阴影，增强立体感。
 let heroOffscreen = null;
 function drawHeroSpinning(img, cx, cy, w, h, rot) {
-  const im = IMG[img];
-  if (!im) { draw(img, cx - w / 2, cy - h / 2, w, h); return; }
-  // 归一化到 [-π, π]，并拆出「背面」（背面镜像采样）
+  if (!IMG[img]) { draw(img, cx - w / 2, cy - h / 2, w, h); return; }
+  // 归一化到 [-π, π]，并拆出「背面」
   let theta = ((rot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
-  let mirror = false;
-  if (theta > Math.PI / 2) { theta -= Math.PI; mirror = true; }
-  else if (theta < -Math.PI / 2) { theta += Math.PI; mirror = true; }
+  let backFace = false;
+  if (theta > Math.PI / 2) { theta -= Math.PI; backFace = true; }
+  else if (theta < -Math.PI / 2) { theta += Math.PI; backFace = true; }
+  // 背面优先用独立背面立绘（IMG[img+'Back']）；缺省时镜像采样正面作兜底
+  const backImg = IMG[img + 'Back'];
+  const im = backFace ? (backImg || IMG[img]) : IMG[img];
+  const mirrorSample = backFace && !backImg;
   const sinT = Math.abs(Math.sin(theta)); // 0 正面/背面 → 1 侧面
   const cosT = Math.abs(Math.cos(theta)); // 1 正面/背面 → 0 侧面
   const N = 24, R = w / 2, sws = im.width / N;
@@ -635,7 +640,7 @@ function drawHeroSpinning(img, cx, cy, w, h, rot) {
     const flatX = u * w * cosT;
     const x = flatX * (1 - sinT) + cylX * sinT;
     const dw = Math.max(0.5, sws * cosT * (1 - sinT) + cylW * sinT);
-    const sxs = mirror ? (1 - (i + 1) / N) * im.width : (i / N) * im.width;
+    const sxs = mirrorSample ? (1 - (i + 1) / N) * im.width : (i / N) * im.width;
     slices.push({ x, dw, depth, sxs });
   }
   if (!slices.length) return;

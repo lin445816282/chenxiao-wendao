@@ -595,15 +595,33 @@ async function showAttrs() {
   const bd = powerBreakdown();
   showModal('战力明细', ['境界 ' + realmName(level) + ' · 总战力 ' + power, '攻击 ' + a.atk + '　防御 ' + a.def + '　生命 ' + a.hp, '— 战力来源 —', '基础(等级) ' + bd.basePower, '装备 ' + bd.eqPower + (sb.pct > 0 ? '　套装 +' + bd.setPower + ' (' + sb.pct + '%)' : '　套装 未激活'), '灵宠 ' + bd.petPower, '已穿戴 ' + (worn.join(' ') || '无')], [{ label: '关闭', fn: closeModal }]);
 }
-// 人物界面：按住左右拖动 360° 旋转查看人物（2.5D 广告牌旋转）
+// 人物界面：按住左右拖动 360° 旋转查看人物。
+// 采用「圆柱体切片映射」近似真实 3D 体型：把立绘贴在半个圆柱表面，
+// 旋转时按柱面几何重投影并做远近遮挡，产生体积感而非纸片缩放。
 function drawHeroSpinning(img, cx, cy, w, h, rot) {
-  const c = Math.cos(rot);
-  const sx = (c < 0 ? -1 : 1) * Math.max(0.16, Math.abs(c)); // 侧身时保留厚度，不消失
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.scale(sx, 1);
-  draw(img, -w / 2, -h / 2, w, h);
-  ctx.restore();
+  const im = IMG[img];
+  if (!im) { draw(img, cx - w / 2, cy - h / 2, w, h); return; }
+  // 归一化到 [-π, π]，并拆出「背面」：背面用镜像采样显示（前像翻转）
+  let theta = ((rot % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  let mirror = false;
+  if (theta > Math.PI / 2) { theta -= Math.PI; mirror = true; }
+  else if (theta < -Math.PI / 2) { theta += Math.PI; mirror = true; }
+  const N = 24;             // 纵向切片数（越多越平滑）
+  const R = w * 0.5;        // 圆柱半径 = 半宽，立绘覆盖整个前半柱面
+  const sws = im.width / N; // 每片源宽度
+  const slices = [];
+  for (let i = 0; i < N; i++) {
+    const uc = (i + 0.5) / N;                       // 纹理中心 0..1
+    const phi = Math.asin(Math.max(-1, Math.min(1, 2 * uc - 1))); // 柱面角 -90°..90°
+    const depth = Math.cos(phi - theta);            // 该片面向观察者的深度
+    if (depth <= 0.02) continue;                    // 背面不可见
+    const sx = cx + R * Math.sin(phi - theta);      // 屏幕 x
+    const dw = sws * depth;                          // 透视收缩后的片宽
+    const sxs = mirror ? (1 - (i + 1) / N) * im.width : (i / N) * im.width;
+    slices.push({ sx: sx - dw / 2, dw, depth, sxs });
+  }
+  slices.sort((a, b) => a.depth - b.depth); // 远→近绘制，正确遮挡
+  for (const s of slices) ctx.drawImage(im, s.sxs, 0, sws, im.height, s.sx, cy - h / 2, s.dw, h);
 }
 async function doHero() { await fetchEquip(); heroRot = 0; scene = 'hero'; fade = 0; }
 function renderHero() {
